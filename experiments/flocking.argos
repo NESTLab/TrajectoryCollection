@@ -16,15 +16,15 @@
   <!-- *************** -->
   <controllers>
 
-    <footbot_flocking_controller id="ffc"
-                                 library="build/controllers/footbot_flocking/libfootbot_flocking">
+    <khepera_flocking_controller id="ffc"
+                                 library="build/controllers/khepera_flocking/libkhepera_flocking">
       <actuators>
         <differential_steering implementation="default" />
-        <leds                  implementation="default" medium="leds" />
+        <range_and_bearing implementation="default" />
       </actuators>
       <sensors>
-        <footbot_light                       implementation="rot_z_only" show_rays="true" />
-        <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true" />
+        <range_and_bearing implementation="medium" medium="rab" show_rays="true" />
+        <kheperaiv_light implementation="rot_z_only" show_rays="true" />
       </sensors>
       <params>
         <wheel_turning hard_turn_angle_threshold="90"
@@ -33,9 +33,10 @@
                        max_speed="10" />
         <flocking target_distance="75"
                   gain="1000"
-                  exponent="2" />
+                  exponent="2"
+                  max_interaction="0.2" />
       </params>
-    </footbot_flocking_controller>
+    </khepera_flocking_controller>
 
   </controllers>
 
@@ -65,9 +66,9 @@
       <position method="uniform" min="4,4,0" max="5,5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="10" max_trials="100">
-        <foot-bot id="fb" omnidirectional_camera_aperture="80">
+        <kheperaiv id="fb" omnidirectional_camera_aperture="80">
           <controller config="ffc" />
-        </foot-bot>
+        </kheperaiv>
       </entity>
     </distribute>
 
@@ -84,6 +85,7 @@
   <!-- * Media * -->
   <!-- ********* -->
   <media>
+    <range_and_bearing id="rab" />
     <led id="leds" />
   </media>
 

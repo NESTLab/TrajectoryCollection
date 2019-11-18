@@ -23,17 +23,17 @@
   <!-- *************** -->
   <controllers>
 
-    <footbot_foraging_controller id="ffc"
-                                 library="build/controllers/footbot_foraging/libfootbot_foraging">
+    <khepera_foraging_controller id="ffc"
+                                 library="build/controllers/khepera_foraging/libkhepera_foraging">
       <actuators>
         <differential_steering implementation="default" />
         <leds implementation="default" medium="leds" />
         <range_and_bearing implementation="default" />
       </actuators>
       <sensors>
-        <footbot_proximity implementation="default" show_rays="false" />
-        <footbot_light implementation="rot_z_only" show_rays="false" />
-        <footbot_motor_ground implementation="rot_z_only" />
+        <kheperaiv_proximity implementation="default" show_rays="false" />
+        <kheperaiv_light implementation="rot_z_only" show_rays="false" />
+        <kheperaiv__ground implementation="rot_z_only" />
         <range_and_bearing implementation="medium" medium="rab" />
       </sensors>
       <params>
@@ -56,7 +56,7 @@
           <food_rule active="true" food_rule_explore_to_rest_delta_prob="0.01" />
         </state>
       </params>
-    </footbot_foraging_controller>
+    </khepera_foraging_controller>
 
   </controllers>
 
@@ -65,7 +65,7 @@
   <!-- ****************** -->
   <loop_functions library="build/loop_functions/foraging_loop_functions/libforaging_loop_functions"
                   label="foraging_loop_functions">
-    <foraging items="15"
+    <foraging items="35"
               radius="0.1"
               energy_per_item="1000"
               energy_per_walking_robot="1"
@@ -122,10 +122,10 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="-1,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="20" max_trials="100">
-        <foot-bot id="fb">
+      <entity quantity="40" max_trials="100">
+        <kheperaiv id="fb">
           <controller config="ffc" />
-        </foot-bot>
+        </kheperaiv>
       </entity>
     </distribute>
 

@@ -1,8 +1,8 @@
 #include "foraging_loop_functions.h"
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/utility/configuration/argos_configuration.h>
-#include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
-#include <controllers/footbot_foraging/footbot_foraging.h>
+#include <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_entity.h>
+#include <controllers/khepera_foraging/khepera_foraging.h>
 
 /****************************************/
 /****************************************/
@@ -110,23 +110,23 @@ void CForagingLoopFunctions::PreStep() {
    UInt32 unWalkingFBs = 0;
    UInt32 unRestingFBs = 0;
    /* Check whether a robot is on a food item */
-   CSpace::TMapPerType& m_cFootbots = GetSpace().GetEntitiesByType("foot-bot");
+   CSpace::TMapPerType& m_cKheperas = GetSpace().GetEntitiesByType("kheperaiv");
 
-   for(CSpace::TMapPerType::iterator it = m_cFootbots.begin();
-       it != m_cFootbots.end();
+   for(CSpace::TMapPerType::iterator it = m_cKheperas.begin();
+       it != m_cKheperas.end();
        ++it) {
       /* Get handle to foot-bot entity and controller */
-      CFootBotEntity& cFootBot = *any_cast<CFootBotEntity*>(it->second);
-      CFootBotForaging& cController = dynamic_cast<CFootBotForaging&>(cFootBot.GetControllableEntity().GetController());
+      CKheperaIVEntity& cKhepera = *any_cast<CKheperaIVEntity*>(it->second);
+      CKheperaForaging& cController = dynamic_cast<CKheperaForaging&>(cKhepera.GetControllableEntity().GetController());
       /* Count how many foot-bots are in which state */
       if(! cController.IsResting()) ++unWalkingFBs;
       else ++unRestingFBs;
       /* Get the position of the foot-bot on the ground as a CVector2 */
       CVector2 cPos;
-      cPos.Set(cFootBot.GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
-               cFootBot.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
+      cPos.Set(cKhepera.GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
+               cKhepera.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
       /* Get food data */
-      CFootBotForaging::SFoodData& sFoodData = cController.GetFoodData();
+      CKheperaForaging::SFoodData& sFoodData = cController.GetFoodData();
       /* The foot-bot has a food item */
       if(sFoodData.HasFoodItem) {
          /* Check whether the foot-bot is in the nest */
