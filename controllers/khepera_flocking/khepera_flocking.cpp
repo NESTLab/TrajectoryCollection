@@ -57,7 +57,8 @@ CKheperaFlocking::CKheperaFlocking() :
    m_pcWheels(NULL),
    m_pcLight(NULL),
    m_pcRABAct(NULL),
-   m_pcRABSens(NULL) {}
+   m_pcRABSens(NULL),
+   m_unRId(0) {}
 
 /****************************************/
 /****************************************/
@@ -100,7 +101,9 @@ void CKheperaFlocking::Init(TConfigurationNode& t_node) {
    catch(CARGoSException& ex) {
       THROW_ARGOSEXCEPTION_NESTED("Error parsing the controller parameters.", ex);
    }
-
+   /* Update Robot Id*/
+   const std::string& strRobotId = GetId();
+   m_unRId = FromString<UInt8>(strRobotId.substr(1));
 }
 
 /****************************************/
@@ -108,7 +111,7 @@ void CKheperaFlocking::Init(TConfigurationNode& t_node) {
 
 void CKheperaFlocking::ControlStep() {
    SetWheelSpeedsFromVector(VectorToLight() + FlockingVector());
-   m_pcRABAct->SetData(0, UInt8(1));
+   m_pcRABAct->SetData(0, m_unRId);
 }
 
 /****************************************/
@@ -145,10 +148,7 @@ CVector2 CKheperaFlocking::FlockingVector() {
       /* A counter for the neighbors in state flock */
       UInt32 unPeers = 0;
       for(size_t i = 0; i < tMsgs.size(); ++i) {
-         /*
-          * We consider only the neighbors in state flock
-          */
-         if(tMsgs[i].Data[0] == 1) {
+         if(tMsgs[i].Data[0] > 0) {
             /*
              * Take the message sender range and horizontal bearing
              * With the range, calculate the Lennard-Jones interaction force

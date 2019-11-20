@@ -165,6 +165,9 @@ private:
    SWheelTurningParams m_sWheelTurningParams;
    /* The flocking interaction parameters. */
    SFlockingInteractionParams m_sFlockingParams;
+
+   /* Robot unique identifier */
+   UInt8 m_unRId;
 };
 
 #endif
