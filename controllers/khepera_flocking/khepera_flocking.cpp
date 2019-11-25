@@ -103,7 +103,7 @@ void CKheperaFlocking::Init(TConfigurationNode& t_node) {
    }
    /* Update Robot Id*/
    const std::string& strRobotId = GetId();
-   m_unRId = FromString<UInt8>(strRobotId.substr(1));
+   m_unRId = static_cast<UInt8>(FromString<int>(strRobotId.substr(2)));
 }
 
 /****************************************/

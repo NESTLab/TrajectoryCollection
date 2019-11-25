@@ -1,5 +1,5 @@
-#ifndef TRAJECTORY_QTUSER_FUNCTIONS_H
-#define TRAJECTORY_QTUSER_FUNCTIONS_H
+#ifndef TRAJECTORY_COLLECTION_QTUSER_FUNCTIONS_H
+#define TRAJECTORY_COLLECTION_QTUSER_FUNCTIONS_H
 
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_user_functions.h>
 #include <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_entity.h>
@@ -24,8 +24,12 @@ public:
 
 private:
 
-   void DrawWaypoints(const std::vector<CVector3>& c_waypoints,
-   const CColor& c_color);
+   void DrawWaypoints(const std::vector<CVector3>& c_waypoints, 
+                      const CVector3& c_startPosition,
+                      const CQuaternion& c_startOrientation,
+                      const CVector3& c_currPosition,
+                      const CQuaternion& c_currOrientation,
+                      const CColor& c_color);
 
 private:
 

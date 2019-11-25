@@ -6,6 +6,7 @@
 #include <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_entity.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
 // #include <argos3/plugins/robots/generic/control_interface/ci_positioning_sensor.h>
+#include <argos3/core/utility/logging/argos_log.h>
 #include <map>
 
 using namespace argos;
@@ -50,7 +51,8 @@ public:
 private:
 
    /* Output file */
-   std::string m_strDataset;
+   std::string m_strFilename;
+   std::ofstream m_cOutput;
    /* Vector of khepera pointers */
    std::vector<CKheperaIVEntity*> m_pcKheperas;
    /* Vector of RAB sensor pointers */
