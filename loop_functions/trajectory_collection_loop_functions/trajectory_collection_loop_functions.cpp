@@ -58,12 +58,12 @@ void CTrajectoryCollectionLoopFunctions::Reset() {
 
 void CTrajectoryCollectionLoopFunctions::PostStep() {
    /* Go through Kheperas */
+   CVector3 cPos2, cPos1;
    for(size_t i = 0; i < m_pcKheperas.size(); ++i) {
       CKheperaIVEntity* pcKh = m_pcKheperas[i];
       const CCI_RangeAndBearingSensor::TReadings& tMsgs = 
       m_pcRABSensors[i]->GetReadings();
-      // LOG << pcKh->GetId() << " " << pcKh->GetEmbodiedEntity().GetOriginAnchor().Position 
-      // << std::endl;
+     
       /* Go through current RAB readings for Khepera */
       for(size_t j = 0; j < tMsgs.size(); ++j)
       {
@@ -94,16 +94,22 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
                robot reference frame */
                CQuaternion cWR(pcKh->GetEmbodiedEntity().GetOriginAnchor().Orientation);
                CQuaternion cWO(m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartOrientation);
-               CQuaternion cOR = cWO.Inverse() * cWR;
-               CRotationMatrix3 cTransition(cOR);
+
+               // CQuaternion cOR = cWO.Conjugate() * cWR;
+               // CRotationMatrix3 cTransition(cOR);
+
+               CRadians cXAngle, cYAngle, cZWOAngle, cZWRAngle;
+               cWO.ToEulerAngles(cZWOAngle, cYAngle, cXAngle);
+               cWR.ToEulerAngles(cZWRAngle, cYAngle, cXAngle);
                /* Compute the offset between current and start frame*/
-               CVector3 cP01 = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position - m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
+               CVector3 cPOR = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position - m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
                /* Get vector to point of interest in current frame */
-               CVector3 cP1(tMsgs[j].Range/100, CRadians::PI_OVER_TWO - CRadians(tMsgs[j].VerticalBearing), tMsgs[j].HorizontalBearing);
+               CVector3 cPR(tMsgs[j].Range/100 * Cos(tMsgs[j].HorizontalBearing), tMsgs[j].Range/100 * Sin(tMsgs[j].HorizontalBearing), 0.0);
                /* Get vector to point of interest in start frame */
-               CVector3 cP0 = cTransition * cP1 + cP01;
+               // CVector3 cPO = cTransition * cPR + cPOR;
+               CVector3 cPO = cPR.RotateZ(cZWRAngle-cZWOAngle) + cPOR;
                /* Add this point to waypoints */
-               m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints.push_back(cP0);
+               m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints.push_back(cPO);
                m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].PrevTime = m_unClock;
             }
          }
@@ -115,9 +121,7 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
             sNewTraj.PrevTime = m_unClock;
             sNewTraj.StartOrientation = pcKh->GetEmbodiedEntity().GetOriginAnchor().Orientation;
             sNewTraj.StartPosition = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position;
-            sNewTraj.Waypoints.push_back(CVector3(tMsgs[j].Range/100,  CRadians::PI_OVER_TWO - CRadians(tMsgs[j].VerticalBearing), tMsgs[j].HorizontalBearing));
-               // CVector3(tMsgs[j].Range/100,
-               // CRadians(ARGOS_PI/2) - CRadians(tMsgs[j].VerticalBearing), tMsgs[j].HorizontalBearing)); 
+            sNewTraj.Waypoints.push_back(CVector3(tMsgs[j].Range/100 * Cos(tMsgs[j].HorizontalBearing), tMsgs[j].Range/100 * Sin(tMsgs[j].HorizontalBearing), 0.0));
             m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]] = sNewTraj;
          }   
       }
