@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="11"
+    <experiment length="33"
                 ticks_per_second="10"
                 random_seed="124" />
   </framework>
@@ -23,8 +23,8 @@
         <range_and_bearing implementation="default" />
       </actuators>
       <sensors>
-        <range_and_bearing implementation="medium" medium="rab" show_rays="true" />
-        <kheperaiv_light implementation="rot_z_only" show_rays="true" />
+        <range_and_bearing implementation="medium" medium="rab" show_rays="false" />
+        <kheperaiv_light implementation="rot_z_only" show_rays="false" />
       </sensors>
       <params>
         <wheel_turning hard_turn_angle_threshold="90"
@@ -44,10 +44,17 @@
   <!-- * Loop functions * -->
   <!-- ****************** -->
 
-  <loop_functions library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
-                  label="trajectory_collection_loop_functions">
+  <loop_functions label="MasterLoopFunctions">
+
+    <sub_loop_function library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+      label="trajectory_collection_loop_functions"/>
   </loop_functions>
 
+
+<!--   <loop_functions library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+                  label="trajectory_collection_loop_functions">
+  </loop_functions>
+ -->
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
@@ -74,7 +81,7 @@
       <position method="uniform" min="4,4,0" max="5,5,0" />
       <!-- <orientation method="constant" values="0,0,0"/> -->
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="10" max_trials="100" base_num="1">
+      <entity quantity="2" max_trials="100" base_num="1">
         <kheperaiv id="kh" omnidirectional_camera_aperture="80">
           <controller config="ffc" />
         </kheperaiv>

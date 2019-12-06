@@ -58,7 +58,6 @@ void CTrajectoryCollectionLoopFunctions::Reset() {
 
 void CTrajectoryCollectionLoopFunctions::PostStep() {
    /* Go through Kheperas */
-   CVector3 cPos2, cPos1;
    for(size_t i = 0; i < m_pcKheperas.size(); ++i) {
       CKheperaIVEntity* pcKh = m_pcKheperas[i];
       const CCI_RangeAndBearingSensor::TReadings& tMsgs = 
@@ -85,7 +84,22 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
             {
                m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]] = 
                m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]];
+               
                m_tPotentialTrajectories[pcKh].erase(tMsgs[j].Data[0]);
+
+               std::string strBuffer;
+               for (auto it_traj = 
+                  (m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints).begin();
+                  it_traj != (m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints).end(); ++it_traj)
+               {
+                 strBuffer += pcKh->GetId().substr(2) + ", "
+                              + ToString(tMsgs[j].Data[0]) + ", " 
+                              + ToString(it_traj->GetX()) + ", "
+                              + ToString(it_traj->GetY()) + ", "
+                              + ToString(it_traj->GetZ()) + ", "
+                              + "\n";
+               }
+               m_cOutput << strBuffer << std::endl;
             }
             /* If continuous, continue in potential */
             else
@@ -94,17 +108,15 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
                robot reference frame */
                CQuaternion cWR(pcKh->GetEmbodiedEntity().GetOriginAnchor().Orientation);
                CQuaternion cWO(m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartOrientation);
-
                // CQuaternion cOR = cWO.Conjugate() * cWR;
                // CRotationMatrix3 cTransition(cOR);
-
                CRadians cXAngle, cYAngle, cZWOAngle, cZWRAngle;
                cWO.ToEulerAngles(cZWOAngle, cYAngle, cXAngle);
                cWR.ToEulerAngles(cZWRAngle, cYAngle, cXAngle);
                /* Compute the offset between current and start frame*/
                CVector3 cPOR = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position - m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
                /* Get vector to point of interest in current frame */
-               CVector3 cPR(tMsgs[j].Range/100 * Cos(tMsgs[j].HorizontalBearing), tMsgs[j].Range/100 * Sin(tMsgs[j].HorizontalBearing), 0.0);
+               CVector3 cPR(CVector3(tMsgs[j].Range*0.01, CRadians::PI_OVER_TWO - tMsgs[j].VerticalBearing, tMsgs[j].HorizontalBearing));
                /* Get vector to point of interest in start frame */
                // CVector3 cPO = cTransition * cPR + cPOR;
                CVector3 cPO = cPR.RotateZ(cZWRAngle-cZWOAngle) + cPOR;
@@ -114,14 +126,24 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
             }
          }
          /* Else, start a potential trajectory */
-         else
+         else if (tMsgs[j].Data[0] != 0)
          {
             STrajectoryData sNewTraj;
             sNewTraj.StartTime = m_unClock;
             sNewTraj.PrevTime = m_unClock;
-            sNewTraj.StartOrientation = pcKh->GetEmbodiedEntity().GetOriginAnchor().Orientation;
-            sNewTraj.StartPosition = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position;
-            sNewTraj.Waypoints.push_back(CVector3(tMsgs[j].Range/100 * Cos(tMsgs[j].HorizontalBearing), tMsgs[j].Range/100 * Sin(tMsgs[j].HorizontalBearing), 0.0));
+            if (m_tSavedTrajectories[pcKh].count(tMsgs[j].Data[0]) == 0)
+            {
+               LOG << "Robot " << pcKh->GetId() << " for tracking robot " << tMsgs[j].Data[0] << std::endl;
+               sNewTraj.StartOrientation = pcKh->GetEmbodiedEntity().GetOriginAnchor().Orientation;
+               sNewTraj.StartPosition = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position;
+               sNewTraj.Waypoints.push_back(
+                  CVector3(tMsgs[j].Range*0.01, CRadians::PI_OVER_TWO - tMsgs[j].VerticalBearing, tMsgs[j].HorizontalBearing));
+            }
+            else 
+            {
+               sNewTraj.StartOrientation = m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].StartOrientation;
+               sNewTraj.StartPosition = m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
+            }
             m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]] = sNewTraj;
          }   
       }

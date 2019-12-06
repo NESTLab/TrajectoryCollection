@@ -186,6 +186,8 @@ CVector2 CKheperaFlocking::FlockingVector() {
 /****************************************/
 
 void CKheperaFlocking::SetWheelSpeedsFromVector(const CVector2& c_heading) {
+    // if (m_unRId == 1) return;
+
    /* Get the heading angle */
    CRadians cHeadingAngle = c_heading.Angle().SignedNormalize();
    /* Get the length of the heading vector */

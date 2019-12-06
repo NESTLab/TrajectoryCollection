@@ -319,6 +319,9 @@ private:
    SDiffusionParams m_sDiffusionParams;
    /* The food data */
    SFoodData m_sFoodData;
+   
+   /* Robot unique identifier */
+   UInt8 m_unRId;
 
 };
 

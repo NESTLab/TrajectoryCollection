@@ -30,6 +30,10 @@ private:
                       const CVector3& c_currPosition,
                       const CQuaternion& c_currOrientation,
                       const CColor& c_color);
+  void DrawWaypointsInWorld(const std::vector<CVector3>& c_waypoints, 
+                      const CVector3& c_startPosition,
+                      const CQuaternion& c_startOrientation,
+                      const CColor& c_color);
 
 private:
 

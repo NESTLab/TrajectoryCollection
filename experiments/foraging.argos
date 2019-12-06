@@ -13,7 +13,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="0"
+    <experiment length="33"
                 ticks_per_second="10"
                 random_seed="123" />
   </framework>
@@ -33,7 +33,7 @@
       <sensors>
         <kheperaiv_proximity implementation="default" show_rays="false" />
         <kheperaiv_light implementation="rot_z_only" show_rays="false" />
-        <kheperaiv__ground implementation="rot_z_only" />
+        <kheperaiv_ground implementation="rot_z_only" />
         <range_and_bearing implementation="medium" medium="rab" />
       </sensors>
       <params>
@@ -63,13 +63,19 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="build/loop_functions/foraging_loop_functions/libforaging_loop_functions"
-                  label="foraging_loop_functions">
-    <foraging items="35"
-              radius="0.1"
-              energy_per_item="1000"
-              energy_per_walking_robot="1"
-              output="foraging.txt" />
+  <loop_functions label="MasterLoopFunctions">
+
+    <sub_loop_function library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+      label="trajectory_collection_loop_functions"/>
+
+    <sub_loop_functions library="build/loop_functions/foraging_loop_functions/libforaging_loop_functions"
+                    label="foraging_loop_functions">
+      <foraging items="35"
+                radius="0.1"
+                energy_per_item="1000"
+                energy_per_walking_robot="1"
+                output="foraging.txt" />
+    </sub_loop_functions>
   </loop_functions>
 
   <!-- *********************** -->
@@ -122,8 +128,8 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="-1,2,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="40" max_trials="100">
-        <kheperaiv id="fb">
+      <entity quantity="40" max_trials="100" base_num = "1">
+        <kheperaiv id="kh">
           <controller config="ffc" />
         </kheperaiv>
       </entity>
@@ -157,8 +163,19 @@
                    look_at="0,0,0"
                    lens_focal_length="20" />
       </camera>
-      <user_functions label="foraging_qt_user_functions" />
+      <user_functions library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+        label="trajectory_collection_qtuser_functions" />
     </qt-opengl>
+
+<!--      <qt-opengl>
+      <camera>
+        <placement idx="0"
+                   position="0,0,4.34"
+                   look_at="0,0,0"
+                   lens_focal_length="20" />
+      </camera>
+      <user_functions label="foraging_qt_user_functions" />
+    </qt-opengl> -->
   </visualization>
 
 </argos-configuration>

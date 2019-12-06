@@ -127,7 +127,7 @@ void CKheperaForaging::Init(TConfigurationNode& t_node) {
       m_pcRABS      = GetSensor  <CCI_RangeAndBearingSensor       >("range_and_bearing"    );
       m_pcProximity = GetSensor  <CCI_KheperaIVProximitySensor      >("kheperaiv_proximity"    );
       m_pcLight     = GetSensor  <CCI_KheperaIVLightSensor          >("kheperaiv_light"        );
-      m_pcGround    = GetSensor  <CCI_KheperaIVGroundSensor    >("kheperaiv__ground" );
+      m_pcGround    = GetSensor  <CCI_KheperaIVGroundSensor    >("kheperaiv_ground" );
       /*
        * Parse XML parameters
        */
@@ -148,12 +148,16 @@ void CKheperaForaging::Init(TConfigurationNode& t_node) {
       that creation, reset, seeding and cleanup are managed by ARGoS. */
    m_pcRNG = CRandom::CreateRNG("argos");
    Reset();
+   /* Update Robot Id*/
+   const std::string& strRobotId = GetId();
+   m_unRId = static_cast<UInt8>(FromString<int>(strRobotId.substr(2)));
 }
 
 /****************************************/
 /****************************************/
 
 void CKheperaForaging::ControlStep() {
+   m_pcRABA->SetData(0, m_unRId);
    switch(m_sStateData.State) {
       case SStateData::STATE_RESTING: {
          Rest();
@@ -186,7 +190,8 @@ void CKheperaForaging::Reset() {
    /* Clear up the last exploration result */
    m_eLastExplorationResult = LAST_EXPLORATION_NONE;
    m_pcRABA->ClearData();
-   m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
+   m_pcRABA->SetData(0, m_unRId);
+   m_pcRABA->SetData(1, LAST_EXPLORATION_NONE);
 }
 
 /****************************************/
@@ -268,6 +273,8 @@ CVector2 CKheperaForaging::DiffusionVector(bool& b_collision) {
 /****************************************/
 
 void CKheperaForaging::SetWheelSpeedsFromVector(const CVector2& c_heading) {
+   //if (m_unRId == 1) return;
+
    /* Get the heading angle */
    CRadians cHeadingAngle = c_heading.Angle().SignedNormalize();
    /* Get the length of the heading vector */
@@ -351,7 +358,7 @@ void CKheperaForaging::Rest() {
       ++m_sStateData.TimeRested;
       /* Be sure not to send the last exploration result multiple times */
       if(m_sStateData.TimeRested == 1) {
-         m_pcRABA->SetData(0, LAST_EXPLORATION_NONE);
+         m_pcRABA->SetData(1, LAST_EXPLORATION_NONE);
       }
       /*
        * Social rule: listen to what other people have found and modify
@@ -359,7 +366,7 @@ void CKheperaForaging::Rest() {
        */
       const CCI_RangeAndBearingSensor::TReadings& tPackets = m_pcRABS->GetReadings();
       for(size_t i = 0; i < tPackets.size(); ++i) {
-         switch(tPackets[i].Data[0]) {
+         switch(tPackets[i].Data[1]) {
             case LAST_EXPLORATION_SUCCESSFUL: {
                m_sStateData.RestToExploreProb += m_sStateData.SocialRuleRestToExploreDeltaProb;
                m_sStateData.ProbRange.TruncValue(m_sStateData.RestToExploreProb);
@@ -483,7 +490,7 @@ void CKheperaForaging::ReturnToNest() {
          /* Yes, stop the wheels... */
          m_pcWheels->SetLinearVelocity(0.0f, 0.0f);
          /* Tell people about the last exploration attempt */
-         m_pcRABA->SetData(0, m_eLastExplorationResult);
+         m_pcRABA->SetData(1, m_eLastExplorationResult);
          /* ... and switch to state 'resting' */
          m_pcLEDs->SetAllColors(CColor::RED);
          m_sStateData.State = SStateData::STATE_RESTING;
