@@ -58,11 +58,12 @@ void CTrajectoryCollectionLoopFunctions::Reset() {
 
 void CTrajectoryCollectionLoopFunctions::PostStep() {
    /* Go through Kheperas */
+   CVector3 cPosRobot2;
    for(size_t i = 0; i < m_pcKheperas.size(); ++i) {
       CKheperaIVEntity* pcKh = m_pcKheperas[i];
       const CCI_RangeAndBearingSensor::TReadings& tMsgs = 
       m_pcRABSensors[i]->GetReadings();
-     
+
       /* Go through current RAB readings for Khepera */
       for(size_t j = 0; j < tMsgs.size(); ++j)
       {
@@ -116,13 +117,16 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
                /* Compute the offset between current and start frame*/
                CVector3 cPOR = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position - m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
                /* Get vector to point of interest in current frame */
-               CVector3 cPR(CVector3(tMsgs[j].Range*0.01, CRadians::PI_OVER_TWO - tMsgs[j].VerticalBearing, tMsgs[j].HorizontalBearing));
+               CVector3 cPR = CVector3(tMsgs[j].Range*0.01, CRadians::PI_OVER_TWO - tMsgs[j].VerticalBearing, tMsgs[j].HorizontalBearing);
                /* Get vector to point of interest in start frame */
                // CVector3 cPO = cTransition * cPR + cPOR;
-               CVector3 cPO = cPR.RotateZ(cZWRAngle-cZWOAngle) + cPOR;
+               CVector3 cPW;
+               cPW = (CVector3(cPR)).RotateZ(cZWRAngle) + pcKh->GetEmbodiedEntity().GetOriginAnchor().Position;
+               CVector3 cPO = cPW.RotateZ(cZWOAngle) + m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
                /* Add this point to waypoints */
                m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints.push_back(cPO);
                m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].PrevTime = m_unClock;
+
             }
          }
          /* Else, start a potential trajectory */
@@ -131,13 +135,12 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
             STrajectoryData sNewTraj;
             sNewTraj.StartTime = m_unClock;
             sNewTraj.PrevTime = m_unClock;
+            //sNewTraj.Waypoints.push_back(CVector3(0,0,0));//tMsgs[j].Range*0.01, CRadians::PI_OVER_TWO - tMsgs[j].VerticalBearing, tMsgs[j].HorizontalBearing));
+            
             if (m_tSavedTrajectories[pcKh].count(tMsgs[j].Data[0]) == 0)
             {
-               LOG << "Robot " << pcKh->GetId() << " for tracking robot " << tMsgs[j].Data[0] << std::endl;
                sNewTraj.StartOrientation = pcKh->GetEmbodiedEntity().GetOriginAnchor().Orientation;
-               sNewTraj.StartPosition = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position;
-               sNewTraj.Waypoints.push_back(
-                  CVector3(tMsgs[j].Range*0.01, CRadians::PI_OVER_TWO - tMsgs[j].VerticalBearing, tMsgs[j].HorizontalBearing));
+               sNewTraj.StartPosition = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position;              
             }
             else 
             {

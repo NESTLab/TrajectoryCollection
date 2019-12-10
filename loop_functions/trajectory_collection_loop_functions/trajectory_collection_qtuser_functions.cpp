@@ -107,12 +107,12 @@ void CTrajectoryCollectionQTUserFunctions::DrawWaypointsInWorld(const std::vecto
 
       CVector3 cPWO = c_startPosition;
       CVector3 cTemp(c_waypoints[unStart]);
-      cStart = (cTemp).RotateZ(cZWOAngle) + cPWO;
+      cStart = (cTemp - cPWO).RotateZ(-cZWOAngle);
       while(unEnd < c_waypoints.size()) {
          cTemp = c_waypoints[unEnd];
-         cEnd = (cTemp).RotateZ(cZWOAngle) + cPWO;
-         DrawRay(CRay3(cStart,
-                       cEnd), c_color);
+         cEnd = (cTemp - cPWO).RotateZ(-cZWOAngle);
+         DrawRay(CRay3(cEnd,
+                       cStart), c_color);
          cStart = cEnd;
          ++unStart;
          ++unEnd;
