@@ -1,1 +1,5 @@
 build/
+logs/
+data/
+tensorflow-scripts/.ipynb_checkpoints/
+tensorflow-scripts/custom_tff/

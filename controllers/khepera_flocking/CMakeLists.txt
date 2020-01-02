@@ -1,5 +1,0 @@
-add_library(khepera_flocking MODULE khepera_flocking.h khepera_flocking.cpp)
-target_link_libraries(khepera_flocking
-  argos3core_simulator
-  argos3plugin_simulator_kheperaiv
-  argos3plugin_simulator_genericrobot)

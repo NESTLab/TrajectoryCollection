@@ -1,6 +1,0 @@
-add_library(khepera_obstacleavoidance MODULE khepera_obstacleavoidance.h khepera_obstacleavoidance.cpp)
-target_link_libraries(khepera_obstacleavoidance
-  argos3core_simulator
-  argos3plugin_simulator_kheperaiv
-  argos3plugin_simulator_genericrobot
-  )
