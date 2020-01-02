@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="0" />
+    <experiment length="100"
+                ticks_per_second="10"
+                random_seed="124" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <khepera_flocking_controller id="ffc"
+                                 library="build/controllers/khepera_flocking/libkhepera_flocking">
+      <actuators>
+        <differential_steering implementation="default" />
+        <range_and_bearing implementation="default" />
+      </actuators>
+      <sensors>
+        <range_and_bearing implementation="medium" rab_range="2" medium="rab" show_rays="false" />
+        <kheperaiv_light implementation="rot_z_only" show_rays="false" />
+      </sensors>
+      <params>
+        <wheel_turning hard_turn_angle_threshold="90"
+                       soft_turn_angle_threshold="70"
+                       no_turn_angle_threshold="360"
+                       max_speed="10" />
+        <flocking target_distance="75"
+                  gain="1000"
+                  exponent="2"
+                  max_interaction="0.2" />
+      </params>
+    </khepera_flocking_controller>
+
+  </controllers>
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+
+  <loop_functions label="MasterLoopFunctions">
+
+    <sub_loop_function library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+      label="trajectory_collection_loop_functions">
+      <collection filename="flocking_TIMESTAMP.dat" />
+    </sub_loop_function>
+  </loop_functions>
+
+
+<!--   <loop_functions library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+                  label="trajectory_collection_loop_functions">
+  </loop_functions>
+ -->
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="30,30,1" center="0,0,0.5">
+
+    <light id="light"
+           position="8.9,2.7,0.5"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="3.0"
+           medium="leds" />
+
+    <!--
+        You can distribute entities randomly. Here, we distribute
+        the entities in this way:
+        - the position is uniformly distributed on the ground, in the
+          square whose corners are (4,4) and (5,5)
+        - the orientations are non-zero only when rotating around Z and
+          chosen from a gaussian distribution, whose mean is zero degrees
+          and standard deviation is 360 degrees.
+    -->
+    
+    <distribute>
+      <position method="uniform" min="1,0,0" max="4,4,0" />
+      <!-- <position method="uniform" min="4,4,0" max="5,5,0" /> -->
+      <!-- <orientation method="constant" values="0,0,0"/> -->
+      <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
+      <entity quantity="40" max_trials="100" base_num="1">
+        <kheperaiv id="kh" omnidirectional_camera_aperture="80">
+          <controller config="ffc" />
+        </kheperaiv>
+      </entity>
+    </distribute>
+
+  </arena>
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics2d id="dyn2d" />
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <range_and_bearing id="rab" />
+    <led id="leds" />
+  </media>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+
+  <visualization>
+    <qt-opengl>
+      <camera>
+        <placement idx="0"
+                   position="5.33539,5.60355,1.06253"
+                   look_at="4.70428,4.92503,0.686605"
+                   lens_focal_length="20" />
+      </camera>
+      <user_functions library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+        label="trajectory_collection_qtuser_functions" />
+    </qt-opengl>
+  </visualization>
+
+</argos-configuration>
