@@ -53,6 +53,7 @@ private:
    /* Output file */
    std::string m_strFilename;
    std::ofstream m_cOutput;
+   std::ofstream m_cGraphOutput;
    /* Vector of khepera pointers */
    std::vector<CKheperaIVEntity*> m_pcKheperas;
    /* Vector of RAB sensor pointers */

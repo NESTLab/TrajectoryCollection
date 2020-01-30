@@ -3,3 +3,10 @@ logs/
 data/
 tensorflow-scripts/.ipynb_checkpoints/
 tensorflow-scripts/custom_tff/
+tensorflow-scripts/redis-stable/
+tensorflow-scripts/benchmarking_data/
+related-work/
+*.h5
+*.h5f
+*.m
+

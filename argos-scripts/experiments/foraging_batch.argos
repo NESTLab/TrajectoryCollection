@@ -15,7 +15,7 @@
     <system threads="0" />
     <experiment length="100"
                 ticks_per_second="10"
-                random_seed="123" />
+                random_seed="SEED" />
   </framework>
 
   <!-- *************** -->
@@ -26,7 +26,7 @@
     <khepera_foraging_controller id="ffc"
                                  library="build/controllers/khepera_foraging/libkhepera_foraging">
       <actuators>
-        <differential_steering implementation="default" />
+        <differential_steering implementation="default" noise_std_dev="NOISE_WH" />
         <leds implementation="default" medium="leds" />
         <range_and_bearing implementation="default" />
       </actuators>
@@ -34,7 +34,7 @@
         <kheperaiv_proximity implementation="default" show_rays="false" />
         <kheperaiv_light implementation="rot_z_only" show_rays="false" />
         <kheperaiv_ground implementation="rot_z_only" />
-        <range_and_bearing implementation="medium" medium="rab" />
+        <range_and_bearing implementation="medium" medium="rab" noise_std_dev="NOISE_RAB" />
       </sensors>
       <params>
         <diffusion go_straight_angle_range="-5:5"

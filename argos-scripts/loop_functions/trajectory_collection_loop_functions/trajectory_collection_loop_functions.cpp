@@ -50,6 +50,7 @@ void CTrajectoryCollectionLoopFunctions::Init(TConfigurationNode& t_tree) {
    }
    m_unClock = 0;
    m_cOutput.open(m_strFilename , std::ios_base::trunc | std::ios_base::out);
+   m_cGraphOutput.open("G_" +m_strFilename, std::ios_base::trunc | std::ios_base::out);
 }
 
 /****************************************/
@@ -76,38 +77,47 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
       /* Go through current RAB readings for Khepera */
       for(size_t j = 0; j < tMsgs.size(); ++j)
       {
+         UInt32 unNeighborId = tMsgs[j].Data[0];
+         
+         m_cGraphOutput << pcKh->GetId().substr(2) + ", " 
+         + ToString(m_unClock) + ", " + ToString(unNeighborId) << std::endl;
+
          /* If potential trajectory started */
          if(m_tPotentialTrajectories[pcKh].count(
-            tMsgs[j].Data[0]) != 0)
+            unNeighborId) != 0)
          {
             /* If discontinuous, clear potential and start */
-            if(m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].PrevTime 
+            if(m_tPotentialTrajectories[pcKh][unNeighborId].PrevTime 
                != m_unClock - 1)
             {
-               m_tPotentialTrajectories[pcKh].erase(tMsgs[j].Data[0]);
+               m_tPotentialTrajectories[pcKh].erase(unNeighborId);
                continue;
             }
             /* If finished, save and remove from potential */
-            else if(m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].PrevTime
-               - m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartTime 
+            else if(m_tPotentialTrajectories[pcKh][unNeighborId].PrevTime
+               - m_tPotentialTrajectories[pcKh][unNeighborId].StartTime 
                == SEQ_LENGTH - 1)
             {
-               m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]] = 
-               m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]];
+               m_tSavedTrajectories[pcKh][unNeighborId] = 
+               m_tPotentialTrajectories[pcKh][unNeighborId];
                
-               m_tPotentialTrajectories[pcKh].erase(tMsgs[j].Data[0]);
+               m_tPotentialTrajectories[pcKh].erase(unNeighborId);
 
                std::string strBuffer;
+               UInt32 unCountTime = 0;
                for (auto it_traj = 
-                  (m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints).begin();
-                  it_traj != (m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints).end(); ++it_traj)
+                  (m_tSavedTrajectories[pcKh][unNeighborId].Waypoints).begin();
+                  it_traj != (m_tSavedTrajectories[pcKh][unNeighborId].Waypoints).end(); ++it_traj)
                {
-                 strBuffer += pcKh->GetId().substr(2) + ", "
-                              + ToString(tMsgs[j].Data[0]) + ", " 
+                  strBuffer += pcKh->GetId().substr(2) + ", "
+                              + ToString(unNeighborId) + ", " 
+                              + ToString(m_tSavedTrajectories[pcKh][unNeighborId].StartTime
+                                 + unCountTime) + ", "
                               + ToString(it_traj->GetX()) + ", "
                               + ToString(it_traj->GetY()) + ", "
                               + ToString(it_traj->GetZ()) + ", "
                               + "\n";
+                  ++unCountTime;
                }
                m_cOutput << strBuffer << std::endl;
             }
@@ -117,36 +127,36 @@ void CTrajectoryCollectionLoopFunctions::PostStep() {
                /* Compute the rotation matrix between start and current
                robot reference frame */
                CQuaternion cWR(pcKh->GetEmbodiedEntity().GetOriginAnchor().Orientation);
-               CQuaternion cWO(m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartOrientation);
+               CQuaternion cWO(m_tPotentialTrajectories[pcKh][unNeighborId].StartOrientation);
                // CQuaternion cOR = cWO.Conjugate() * cWR;
                // CRotationMatrix3 cTransition(cOR);
                CRadians cXAngle, cYAngle, cZWOAngle, cZWRAngle;
                cWO.ToEulerAngles(cZWOAngle, cYAngle, cXAngle);
                cWR.ToEulerAngles(cZWRAngle, cYAngle, cXAngle);
                /* Compute the offset between current and start frame*/
-               CVector3 cPOR = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position - m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
+               CVector3 cPOR = pcKh->GetEmbodiedEntity().GetOriginAnchor().Position - m_tPotentialTrajectories[pcKh][unNeighborId].StartPosition;
                /* Get vector to point of interest in current frame */
                CVector3 cPR = CVector3(tMsgs[j].Range*0.01, CRadians::PI_OVER_TWO - tMsgs[j].VerticalBearing, tMsgs[j].HorizontalBearing);
                /* Get vector to point of interest in start frame */
                // CVector3 cPO = cTransition * cPR + cPOR;
                CVector3 cPW;
                cPW = (CVector3(cPR)).RotateZ(cZWRAngle) + pcKh->GetEmbodiedEntity().GetOriginAnchor().Position;
-               CVector3 cPO = cPW.RotateZ(cZWOAngle) + m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
+               CVector3 cPO = cPW.RotateZ(cZWOAngle) + m_tPotentialTrajectories[pcKh][unNeighborId].StartPosition;
                /* Add this point to waypoints */
-               m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].Waypoints.push_back(cPO);
-               m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]].PrevTime = m_unClock;
+               m_tPotentialTrajectories[pcKh][unNeighborId].Waypoints.push_back(cPO);
+               m_tPotentialTrajectories[pcKh][unNeighborId].PrevTime = m_unClock;
 
             }
          }
          /* Else, start a potential trajectory */
-         else if (tMsgs[j].Data[0] != 0)
+         else if (unNeighborId != 0)
          {
             STrajectoryData sNewTraj;
             sNewTraj.StartTime = m_unClock;
             sNewTraj.PrevTime = m_unClock;
-            sNewTraj.StartOrientation = m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].StartOrientation;
-            sNewTraj.StartPosition = m_tSavedTrajectories[pcKh][tMsgs[j].Data[0]].StartPosition;
-            m_tPotentialTrajectories[pcKh][tMsgs[j].Data[0]] = sNewTraj;
+            sNewTraj.StartOrientation = m_tSavedTrajectories[pcKh][unNeighborId].StartOrientation;
+            sNewTraj.StartPosition = m_tSavedTrajectories[pcKh][unNeighborId].StartPosition;
+            m_tPotentialTrajectories[pcKh][unNeighborId] = sNewTraj;
          }   
       }
    }
@@ -164,15 +174,18 @@ void CTrajectoryCollectionLoopFunctions::PostExperiment() {
       for(auto it_tracked = it->second.begin();
           it_tracked != it->second.end(); ++it_tracked)
       {
+         UInt32 unCountTime = 0;
          for (auto it_traj = (it_tracked->second.Waypoints).begin();
             it_traj != (it_tracked->second.Waypoints).end(); ++it_traj)
          {
            strBuffer += it->first->GetId().substr(2) + ", "
                         + ToString(it_tracked->first) + ", " 
+                        + ToString((it_tracked->second).StartTime + unCountTime) + ", "
                         + ToString(it_traj->GetX()) + ", "
                         + ToString(it_traj->GetY()) + ", "
                         + ToString(it_traj->GetZ()) + ", "
                         + "\n";
+           ++unCountTime;
          }
       }
    }
