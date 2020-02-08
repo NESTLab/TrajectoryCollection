@@ -23,7 +23,7 @@ mkdir -p $CONFDIR
 cd $WORKDIR
 
 # Go through all the values for 
-for CONTROLLER in flocking foraging khepera_obstacleavoidance 
+for CONTROLLER in khepera_obstacleavoidance #flocking foraging
 do
     for SEED in 2 7 10
     do 
