@@ -117,54 +117,57 @@ void CForagingLoopFunctions::PreStep() {
        ++it) {
       /* Get handle to foot-bot entity and controller */
       CKheperaIVEntity& cKhepera = *any_cast<CKheperaIVEntity*>(it->second);
-      CKheperaForaging& cController = dynamic_cast<CKheperaForaging&>(cKhepera.GetControllableEntity().GetController());
-      /* Count how many foot-bots are in which state */
-      if(! cController.IsResting()) ++unWalkingFBs;
-      else ++unRestingFBs;
-      /* Get the position of the foot-bot on the ground as a CVector2 */
-      CVector2 cPos;
-      cPos.Set(cKhepera.GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
-               cKhepera.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
-      /* Get food data */
-      CKheperaForaging::SFoodData& sFoodData = cController.GetFoodData();
-      /* The foot-bot has a food item */
-      if(sFoodData.HasFoodItem) {
-         /* Check whether the foot-bot is in the nest */
-         if(cPos.GetX() < -1.0f) {
-            /* Place a new food item on the ground */
-            m_cFoodPos[sFoodData.FoodItemIdx].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
-                                                  m_pcRNG->Uniform(m_cForagingArenaSideY));
-            /* Drop the food item */
-            sFoodData.HasFoodItem = false;
-            sFoodData.FoodItemIdx = 0;
-            ++sFoodData.TotalFoodItems;
-            /* Increase the energy and food count */
-            m_nEnergy += m_unEnergyPerFoodItem;
-            ++m_unCollectedFood;
-            /* The floor texture must be updated */
-            m_pcFloor->SetChanged();
-         }
-      }
-      else {
-         /* The foot-bot has no food item */
-         /* Check whether the foot-bot is out of the nest */
-         if(cPos.GetX() > -1.0f) {
-            /* Check whether the foot-bot is on a food item */
-            bool bDone = false;
-            for(size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i) {
-               if((cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
-                  /* If so, we move that item out of sight */
-                  m_cFoodPos[i].Set(100.0f, 100.f);
-                  /* The foot-bot is now carrying an item */
-                  sFoodData.HasFoodItem = true;
-                  sFoodData.FoodItemIdx = i;
-                  /* The floor texture must be updated */
-                  m_pcFloor->SetChanged();
-                  /* We are done */
-                  bDone = true;
-               }
+      UInt32 RId = FromString<UInt32>(cKhepera.GetId().substr(2));
+      if (RId <= 10) {
+         CKheperaForaging& cController = dynamic_cast<CKheperaForaging&>(cKhepera.GetControllableEntity().GetController());
+         /* Count how many foot-bots are in which state */
+         if(! cController.IsResting()) ++unWalkingFBs;
+         else ++unRestingFBs;
+         /* Get the position of the foot-bot on the ground as a CVector2 */
+         CVector2 cPos;
+         cPos.Set(cKhepera.GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
+                  cKhepera.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
+         /* Get food data */
+         CKheperaForaging::SFoodData& sFoodData = cController.GetFoodData();
+         /* The foot-bot has a food item */
+         if(sFoodData.HasFoodItem) {
+            /* Check whether the foot-bot is in the nest */
+            if(cPos.GetX() < -1.0f) {
+               /* Place a new food item on the ground */
+               m_cFoodPos[sFoodData.FoodItemIdx].Set(m_pcRNG->Uniform(m_cForagingArenaSideX),
+                                                     m_pcRNG->Uniform(m_cForagingArenaSideY));
+               /* Drop the food item */
+               sFoodData.HasFoodItem = false;
+               sFoodData.FoodItemIdx = 0;
+               ++sFoodData.TotalFoodItems;
+               /* Increase the energy and food count */
+               m_nEnergy += m_unEnergyPerFoodItem;
+               ++m_unCollectedFood;
+               /* The floor texture must be updated */
+               m_pcFloor->SetChanged();
             }
          }
+         else {
+            /* The foot-bot has no food item */
+            /* Check whether the foot-bot is out of the nest */
+            if(cPos.GetX() > -1.0f) {
+               /* Check whether the foot-bot is on a food item */
+               bool bDone = false;
+               for(size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i) {
+                  if((cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius) {
+                     /* If so, we move that item out of sight */
+                     m_cFoodPos[i].Set(100.0f, 100.f);
+                     /* The foot-bot is now carrying an item */
+                     sFoodData.HasFoodItem = true;
+                     sFoodData.FoodItemIdx = i;
+                     /* The floor texture must be updated */
+                     m_pcFloor->SetChanged();
+                     /* We are done */
+                     bDone = true;
+                  }
+               }
+            }
+         } 
       }
    }
    /* Update energy expediture due to walking robots */

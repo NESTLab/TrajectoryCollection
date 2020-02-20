@@ -1,0 +1,271 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="0" />
+    <experiment length="10000"
+                ticks_per_second="10"
+                random_seed="SEED" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <khepera_flocking_controller id="kflc"
+                                 library="build/controllers/khepera_flocking/libkhepera_flocking">
+      <actuators>
+        <differential_steering implementation="default" noise_std_dev="NOISE_WH" />
+        <range_and_bearing implementation="default" />
+      </actuators>
+      <sensors>
+        <range_and_bearing implementation="medium" 
+                           rab_range="2" 
+                           medium="rab" 
+                           show_rays="false"
+                           noise_std_dev="NOISE_RAB" />
+        <kheperaiv_light implementation="rot_z_only" show_rays="true" />
+      </sensors>
+      <params>
+        <wheel_turning hard_turn_angle_threshold="90"
+                       soft_turn_angle_threshold="70"
+                       no_turn_angle_threshold="10"
+                       max_speed="10" />
+        <flocking target_distance="30"
+                  gain="1000"
+                  exponent="2"
+                  max_interaction="0.2" />
+      </params>
+    </khepera_flocking_controller>
+
+    <khepera_obstacleavoidance_controller id="koc"
+                                        library="build/controllers/khepera_obstacleavoidance/libkhepera_obstacleavoidance.so">
+      <actuators>
+        <differential_steering implementation="default" noise_std_dev="NOISE_WH" />
+        <range_and_bearing implementation="default" />
+      </actuators>
+      <sensors>
+        <!-- <positioning implementation="default" /> -->
+        <kheperaiv_proximity implementation="default" show_rays="true" />
+        <range_and_bearing implementation="medium" medium="rab" noise_std_dev="NOISE_RAB" />
+      </sensors>
+      <params velocity="5" />
+    </khepera_obstacleavoidance_controller>
+
+    <khepera_foraging_controller id="kfoc"
+                                 library="build/controllers/khepera_foraging/libkhepera_foraging">
+      <actuators>
+        <differential_steering implementation="default" noise_std_dev="NOISE_WH" />
+        <leds implementation="default" medium="leds" />
+        <range_and_bearing implementation="default" />
+      </actuators>
+      <sensors>
+        <kheperaiv_proximity implementation="default" show_rays="false" />
+        <kheperaiv_light implementation="rot_z_only" show_rays="true" />
+        <kheperaiv_ground implementation="rot_z_only" />
+        <range_and_bearing implementation="medium" medium="rab" noise_std_dev="NOISE_RAB" />
+      </sensors>
+      <params>
+        <diffusion go_straight_angle_range="-5:5"
+                   delta="0.1" />
+        <wheel_turning hard_turn_angle_threshold="90"
+                       soft_turn_angle_threshold="70"
+                       no_turn_angle_threshold="10"
+                       max_speed="10" />
+        <state initial_rest_to_explore_prob="0.1"
+               initial_explore_to_rest_prob="0.1"
+               food_rule_explore_to_rest_delta_prob="0.01"
+               food_rule_rest_to_explore_delta_prob="0.01"
+               collision_rule_explore_to_rest_delta_prob="0.01"
+               social_rule_explore_to_rest_delta_prob="0.01"
+               social_rule_rest_to_explore_delta_prob="0.01"
+               minimum_resting_time="50"
+               minimum_unsuccessful_explore_time="600"
+               minimum_search_for_place_in_nest_time="50">
+          <food_rule active="true" food_rule_explore_to_rest_delta_prob="0.01" />
+        </state>
+      </params>
+    </khepera_foraging_controller>
+
+  </controllers>
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+
+  <loop_functions label="MasterLoopFunctions">
+
+    <sub_loop_function library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+      label="trajectory_collection_loop_functions">
+      <collection filename="mixed_by_id_TIMESTAMP.dat" />
+    </sub_loop_function>
+
+    <sub_loop_functions library="build/loop_functions/foraging_loop_functions/libforaging_loop_functions"
+                    label="foraging_loop_functions">
+      <foraging items="35"
+                radius="0.1"
+                energy_per_item="1000"
+                energy_per_walking_robot="1"
+                output="foraging.txt" />
+    </sub_loop_functions>
+
+  </loop_functions>
+
+
+<!--   <loop_functions library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+                  label="trajectory_collection_loop_functions">
+  </loop_functions>
+ -->
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="5,5,2" center="0,0,1">
+
+    <floor id="floor"
+       source="loop_functions"
+       pixels_per_meter="50" />
+
+<!--     <light id="light"
+           position="1,1,0.5"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="3.0"
+           medium="leds" />
+ -->
+    <box id="wall_north" size="4,0.1,0.5" movable="false">
+      <body position="0,2,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="4,0.1,0.5" movable="false">
+      <body position="0,-2,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="0.1,4,0.5" movable="false">
+      <body position="2,0,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="0.1,4,0.5" movable="false">
+      <body position="-2,0,0" orientation="0,0,0" />
+    </box>
+
+<!--     <light id="light_1"
+           position="-2,-1.5,1.0"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="3.0"
+           medium="leds" /> -->
+    <light id="light_2"
+           position="-2,-0.5,1.0"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="3.0"
+           medium="leds" />
+<!--     <light id="light_3"
+           position="-2,0.5,1.0"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="3.0"
+           medium="leds" />
+    <light id="light_4"
+           position="-2,1.5,1.0"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="3.0"
+           medium="leds" />
+ -->
+    <!--
+        We distribute 5 boxes uniformly in position and rotation around Z.
+    -->
+<!--     <distribute>
+      <position method="uniform" min="0,-2,0" max="2,2,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="3" max_trials="100">
+        <box id="b" size="0.3,0.3,0.5" movable="false" />
+      </entity>
+    </distribute> -->
+
+    <!--
+        We distribute cylinders uniformly in position and with
+        constant rotation (rotating a cylinder around Z does not
+        matter)
+    -->
+<!--     <distribute>
+      <position method="uniform" min="0,0,0" max="2,2,0" />
+      <orientation method="constant" values="0,0,0" />
+      <entity quantity="3" max_trials="100">
+        <cylinder id="c" height="0.5" radius="0.1" movable="false" />
+      </entity>
+    </distribute> -->
+
+    <distribute>
+      <position method="uniform" min="-2,-2,0" max="-1,2,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="10" max_trials="100" base_num="11">
+        <kheperaiv id="kh">
+          <controller config="koc" />
+        </kheperaiv>
+      </entity>
+
+    </distribute>
+
+    <distribute>
+      <position method="uniform" min="-2,-2,0" max="-1,2,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+
+      <entity quantity="10" max_trials="100" base_num="1">
+        <kheperaiv id="kh" >
+          <controller config="kfoc" />
+        </kheperaiv>
+      </entity>
+
+    </distribute>
+
+    <distribute>
+      <position method="uniform" min="1,1,0" max="2,2,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+
+      <entity quantity="10" max_trials="100" base_num="21">
+        <kheperaiv id="kh" omnidirectional_camera_aperture="80">
+          <controller config="kflc" />
+        </kheperaiv>
+      </entity>
+
+    </distribute>
+
+
+  </arena>
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics2d id="dyn2d" />
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <range_and_bearing id="rab" />
+    <led id="leds" />
+  </media>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+
+<!--   <visualization>
+    <qt-opengl>
+      <camera>
+        <placement idx="0"
+                   position="5.33539,5.60355,1.06253"
+                   look_at="4.70428,4.92503,0.686605"
+                   lens_focal_length="20" />
+      </camera>
+      <user_functions library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
+        label="trajectory_collection_qtuser_functions" />
+    </qt-opengl>
+  </visualization>
+ -->
+</argos-configuration>

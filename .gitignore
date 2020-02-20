@@ -9,4 +9,9 @@ related-work/
 *.h5
 *.h5f
 *.m
-
+*.dat
+*.pyc
+pyvstig/
+*.txt
+results/
+tensorflow-scripts/tff*

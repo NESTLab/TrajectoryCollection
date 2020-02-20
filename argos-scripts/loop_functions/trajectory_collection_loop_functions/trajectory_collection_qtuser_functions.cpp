@@ -24,33 +24,33 @@ void CTrajectoryCollectionQTUserFunctions::DrawInWorld()
    for(auto element : m_tPotentialTrajectories)
    {
       CKheperaIVEntity& c_entity = *(element.first);
-      if(c_entity.GetId() == "kh1") 
-      {
+      // if(c_entity.GetId() == "kh1") 
+      // {
          /* Go through all the potential trajectories and draw them */
          for(size_t i = 0; i < m_tPotentialTrajectories[&(c_entity)].size(); ++i)
          {
             DrawWaypointsInWorld(m_tPotentialTrajectories[&c_entity][i].Waypoints,
               m_tPotentialTrajectories[&c_entity][i].StartPosition,
               m_tPotentialTrajectories[&c_entity][i].StartOrientation,
-              CColor::GREEN);
+              CColor::RED);
          }
-      }
+      // }
    }
 
    for(auto element : m_tSavedTrajectories)
    {
       CKheperaIVEntity& c_entity = *(element.first);
-      if(c_entity.GetId() == "kh1") 
-      {
+      // if(c_entity.GetId() == "kh1") 
+      // {
          /* Go through all the saved trajectories and draw them */
          for(size_t i = 0; i < m_tSavedTrajectories[&c_entity].size(); ++i)
          {
             DrawWaypointsInWorld(m_tSavedTrajectories[&c_entity][i].Waypoints,
                           m_tSavedTrajectories[&c_entity][i].StartPosition,
                           m_tSavedTrajectories[&c_entity][i].StartOrientation,
-                          CColor::RED);
+                          CColor::BLUE);
          }      
-      }
+      // }
    }
 }
 
@@ -144,7 +144,7 @@ void CTrajectoryCollectionQTUserFunctions::DrawWaypoints(const std::vector<CVect
          cEnd = (CVector3(c_waypoints[unEnd]) - cPOR).RotateZ(cZWOAngle - cZWRAngle);
          // cEnd = cTransition * c_waypoints[unEnd] + cPRO;
          DrawRay(CRay3(cEnd,
-                       cStart), c_color);
+                       cStart), c_color, 20.0);
          cStart = cEnd;
          ++unStart;
          ++unEnd;
