@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function
 import collections
 import functools
 import os
-import six
 import time
 import glob
 from datetime import datetime
@@ -37,8 +36,8 @@ import sys
 # # 0. Parse Script Arguments
 
 path = sys.argv[1]
-PERCENT_QUORUM = sys.argv[2]
-QUOTA = sys.argv[3]
+PERCENT_QUORUM = float(sys.argv[2])
+QUOTA = int(sys.argv[3])
 
 # Global constants and variables
 
@@ -130,8 +129,9 @@ for filename in glob.iglob(path):
             last_key = last_sample_keys[rid] 
             if(last_key in samples[exp_id][rid] and len(samples[exp_id][rid][last_key]) != 0):
                 last_sample_keys[rid]+=1
+    num_robots = len(samples[exp_id].keys())
     # Communication graph 
-    filename = filename[0:7] + "G_" + filename[8:]
+    filename = filename[:8] + "G_" + filename[8:]
     print(filename)  
     exp_id = filename[-10:-4]
     neighbors.update({exp_id : {}})
