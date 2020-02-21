@@ -20,6 +20,6 @@ for QUORUM in 0.2 0.6
 do
 	for QUOTA in 20 60
 	do
-		python DFL_in_MRS.py '../data/[!G_]**.dat' '../data/G_**.dat' ${QUORUM} ${QUOTA}
+		python DFL_in_MRS.py '../data/[!G_]**.dat' ${QUORUM} ${QUOTA}
 	done
 done

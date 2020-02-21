@@ -37,9 +37,8 @@ import sys
 # # 0. Parse Script Arguments
 
 path = sys.argv[1]
-graph_path = sys.argv[2]
-PERCENT_QUORUM = sys.argv[3]
-QUOTA = sys.argv[4]
+PERCENT_QUORUM = sys.argv[2]
+QUOTA = sys.argv[3]
 
 # Global constants and variables
 
@@ -74,6 +73,7 @@ history_FL = {}
 summary_FL = {}
 history_DFL = {}
 summary_DFL = {}
+neighbors = {}  #neigbors{ <exp_id> : {<t>: { <rid> : [<neighbors>]}}
 
 # # 1. Data Preprocessing
 
@@ -130,14 +130,8 @@ for filename in glob.iglob(path):
             last_key = last_sample_keys[rid] 
             if(last_key in samples[exp_id][rid] and len(samples[exp_id][rid][last_key]) != 0):
                 last_sample_keys[rid]+=1
-
-# ## 1.3 Communication graph 
-
-neighbors = {}  #neigbors{ <exp_id> : {<t>: { <rid> : [<neighbors>]}}
-
-num_robots = 10
-
-for filename in glob.iglob(graph_path):
+    # Communication graph 
+    filename = filename[0:7] + "G_" + filename[8:]
     print(filename)  
     exp_id = filename[-10:-4]
     neighbors.update({exp_id : {}})
