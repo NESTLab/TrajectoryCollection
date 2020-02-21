@@ -316,9 +316,9 @@ protected:
    // FLOCKING STUFF
 
    /*
-    * Calculates the vector to the closest light.
+    * Calculates the vector to the closest goal.
     */
-   virtual CVector2 VectorToLight();
+   virtual CVector2 VectorToGoal(const CVector2& c_pos, const CRadians c_angle);
 
    /*
     * Calculates the flocking interaction vector.

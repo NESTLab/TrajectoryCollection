@@ -75,7 +75,9 @@ PERCENT_QUORUM = 0.5
 samples_central = {}
 samples = {} # samples{ <exp_id> : {<rid>: { <traj_id> : { 'traj' : [], 'end' : <time_collected> }}}
 history_FL = {}
+summary_FL = {}
 history_DFL = {}
+summary_DFL = {}
 
 # # 1. Data Preprocessing
 
@@ -263,7 +265,9 @@ def train_locally(rid, batch, current_weights):
     # Compute learning duration in timesteps (100ms)
     duration = round((stop - start).total_seconds() * 10)
     # Write metrics (GLOBAL VARIABLE)
-    history_DFL[exp][rid].update({round_num : { 'losses': robot_history.history, 'num_samples': len(x_train_DFL) + len(x_val_DFL)}})
+    history_DFL[exp][rid].update({round_num : { 'losses': robot_history.history, 
+                                                'num_samples': len(x_train_DFL) + len(x_val_DFL),
+                                                'time': duration} })
     # Not sure if needed
     tf.keras.backend.clear_session()
     return trainable_weights, duration
@@ -276,12 +280,13 @@ local_lstm = create_model()
 for exp in samples.keys():
     
     history_DFL.update({exp : {}})
+    summary_DFL.update({exp : {}})
+
+    summary_DFL[exp].update({'entry_barrier_start' : []})
+    summary_DFL[exp].update({'entry_barrier_end' : []})
+    summary_DFL[exp].update({'exit_barrier_end' : []})
     
-    history_DFL[exp].update({'entry_barrier_start' : []})
-    history_DFL[exp].update({'entry_barrier_end' : []})
-    history_DFL[exp].update({'exit_barrier_end' : []})
-    
-    history_DFL[exp].update({'num_participants' : {}})
+    summary_DFL[exp].update({'num_participants' : {}})
     
     # Per experiment settings 
     num_robots = len(samples[exp].keys())
@@ -336,10 +341,10 @@ for exp in samples.keys():
                     b.put(r)
             t = t + 1
     
-        history_DFL[exp]['entry_barrier_end'].append(t)
+        summary_DFL[exp]['entry_barrier_end'].append(t)
     
         participants = b.ready()
-        history_DFL[exp]['num_participants'].update({round_num : len(participants)})
+        summary_DFL[exp]['num_participants'].update({round_num : len(participants)})
     
         # LEARNING ROUND
         
@@ -392,7 +397,7 @@ for exp in samples.keys():
                     w.put_samples(rid, round_data[rid]['n'])
             t = t + 1
         
-        history_DFL[exp]['exit_barrier_end'].append(t)
+        summary_DFL[exp]['exit_barrier_end'].append(t)
         round_num = round_num + 1
 
 # ### 4.3 Save training data
@@ -402,17 +407,20 @@ for exp in history_DFL:
     data_DFL.update({exp : {} })
     for round_num in range(1, NUM_ROUNDS):
         data_DFL[exp].update({round_num: {}})
-        for robot in history_FL[exp]:
+        for robot in history_DFL[exp]:
             if (round_num in history_DFL[exp][robot].keys()):
                 data_DFL[exp][round_num].update({robot : {}})
                 data_DFL[exp][round_num][robot] = {'losses' : history_DFL[exp][robot][round_num]['losses'], 
-                                                    'num_samples' : history_DFL[exp][robot][round_num]['num_samples']}
+                                                    'num_samples' : history_DFL[exp][robot][round_num]['num_samples'],
+                                                    'time': history_DFL[exp][robot][round_num]['time']}
 
 filehandler = open('DFL_history_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(data_DFL, filehandler)
 filehandler.close()
 
-
+filehandler = open('DFL_summary_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+pickle.dump(summary_DFL, filehandler)
+filehandler.close()
 
 # Overwrite global constant
 
@@ -525,8 +533,9 @@ local_lstm = create_model()
 for exp in samples.keys():
     
     history_FL.update({exp : {}})
+    summary_FL.update({exp : {}})
     
-    history_FL[exp].update({'num_participants' : {}})
+    summary_FL[exp].update({'num_participants' : {}})
 
     # Per experiment settings 
     num_robots = len(samples[exp].keys())
@@ -534,8 +543,6 @@ for exp in samples.keys():
     for i in range(1, num_robots + 1):
         history_FL[exp].update({i : {}})
 
-    # Set global clock to 0
-    global_clock = 0
     round_num = 1
     
     # Initialize weights
@@ -547,14 +554,25 @@ for exp in samples.keys():
     arr_num_samples[0] = {}
     trainable_weights[round_num] = {k : v for (k, v) in zip(range(1, num_robots + 1), w_list)}
     arr_num_samples[round_num] = {k : 1 for (k, v) in zip(range(1, num_robots + 1), w_list)}
-    leftover_samples_buffer = {}
-    
+
     # buffer of last data index of previous round for each robot
     last_idx_previous_round = np.zeros(num_robots, dtype=int)
     
-    for t in range(ROUND_DURATION, EXP_DURATION, ROUND_DURATION):
+    while (t < EXP_DURATION):
         
         num_participants = 0
+
+        # Find time of round start (resume from indices at previous round)
+        current_indices = last_idx_previous_round
+        tmp_idx = np.add(current_indices, QUOTA)
+        min_learners = round(PERCENT_QUORUM * num_robots)
+        times_at_quota = []
+        for i in samples[exp].keys():
+            if tmp_idx[i-1] in samples[exp][i].keys():
+                times_at_quota.append(samples[exp][i][tmp_idx[i-1]]['end'])
+        times_at_quota.sort()
+        t = times_at_quota[min_learners - 1]
+
         print("FL round ", round_num, "at t ", t)
 
         # One round for each robot: data collection, local training and global update
@@ -569,24 +587,11 @@ for exp in samples.keys():
             num_samples = current_idx - last_idx_previous_round[i-1]
             
              # Check that we have enough data collected to participate in the round
-            if(num_samples >= PARTITION_SIZE):
+            if(num_samples >= QUOTA):
                 # Take extra data collected before end of round
                 tmp = [samples[exp][i][j]['traj'] for j in range(last_idx_previous_round[i-1], current_idx)]
                 batch.append(tmp)
-                # Take remaining data from previous round
-                if(i in leftover_samples_buffer.keys() and len(leftover_samples_buffer[i]) > 0):
-                    batch.append(leftover_samples_buffer[i])
-                    leftover_samples_buffer[i] = []
-            # Check that we have enough previous data      
-            elif(i in leftover_samples_buffer.keys() 
-                 and (len(leftover_samples_buffer[i]) + num_samples) >= PARTITION_SIZE): 
-                batch.append(leftover_samples_buffer[i])
-                leftover_samples_buffer[i] = []
             else:
-                if(i not in leftover_samples_buffer.keys()):
-                    leftover_samples_buffer.update({i: []})
-                leftover_samples_buffer[i] = [samples[exp][i][j]['traj'] for j in range(last_idx_previous_round[i-1], current_idx)]
-                last_idx_previous_round[i-1] = current_idx
                 continue
             num_participants += 1
             last_idx_previous_round[i-1] = current_idx
@@ -603,10 +608,14 @@ for exp in samples.keys():
             keras_model_clone = tf.keras.models.clone_model(local_lstm)
             keras_model_clone.compile(optimizer='SGD', loss='mean_absolute_error')
             keras_model_clone.set_weights(current_weights)
+            start = datetime.datetime.now()
             robot_history = keras_model_clone.fit(train_batch, epochs=LOCAL_EPOCHS,
               steps_per_epoch=len(x_train_FL),
               validation_data=val_batch, 
               validation_steps=len(x_val_FL))
+            stop = datetime.datetime.now()
+            # Compute learning duration in timesteps (100ms)
+            duration = round((stop - start).total_seconds() * 10)
             # Write weights 
             if((round_num+1) not in trainable_weights.keys()):
                 trainable_weights.update({(round_num+1): {}})
@@ -614,7 +623,8 @@ for exp in samples.keys():
             trainable_weights[round_num+1].update({i: keras_model_clone.get_weights()})
             arr_num_samples[round_num+1].update({i: num_samples})
             # Write metrics
-            history_FL[exp][i].update({round_num : { 'losses': robot_history.history, 'num_samples': num_samples}})
+            history_FL[exp][i].update({round_num : { 'losses': robot_history.history, 'num_samples': num_samples,
+                                                     'time': duration}})
             del current_weights
             del robot_history
             del train_batch
@@ -624,7 +634,7 @@ for exp in samples.keys():
             del keras_model_clone
             del local_lstm
             tf.keras.backend.clear_session()
-        history_FL[exp]['num_participants'].update({round_num : num_participants})
+        summary_FL[exp]['num_participants'].update({round_num : num_participants})
         if (num_participants == 0):
             trainable_weights[round_num+1] = trainable_weights[round_num]
             arr_num_samples[round_num+1] = trainable_weights[round_num]
@@ -641,12 +651,16 @@ for exp in history_FL:
             if (round_num in history_FL[exp][robot].keys()):
                 data_FL[exp][round_num].update({robot : {}})
                 data_FL[exp][round_num][robot] = {'losses' : history_FL[exp][robot][round_num]['losses'], 
-                                                    'num_samples' : history_FL[exp][robot][round_num]['num_samples']}
+                                                    'num_samples' : history_FL[exp][robot][round_num]['num_samples'],
+                                                    'time': history_FL[exp][robot][round_num]['time']}
 
 filehandler = open('FL_history_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(data_FL, filehandler)
 filehandler.close()
 
+filehandler = open('FL_summary_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+pickle.dump(summary_FL, filehandler)
+filehandler.close()
 
 # ## 6.0 Datasets
 

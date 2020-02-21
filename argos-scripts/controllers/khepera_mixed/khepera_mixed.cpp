@@ -4,8 +4,11 @@
 #include <argos3/core/utility/configuration/argos_configuration.h>
 #include <argos3/core/utility/logging/argos_log.h>
 
-const Real FLOCKING_X = -1.0;
-const Real DIFFUSION_X = 1.0;
+const Real FLOCKING_1 = -1.0;
+const Real FLOCKING_2 = 1.0;
+const Real DIFFUSION_Y = -1.0;
+const CVector2 FLOCKING_GOAL_1 = CVector2(-0.95, -2.5);
+const CVector2 FLOCKING_GOAL_2 = CVector2(1.05, 2.5);
 
 /****************************************/
 /****************************************/
@@ -176,12 +179,18 @@ void CKheperaMixed::ControlStep() {
 
    const CCI_PositioningSensor::SReading& tPosRead = m_pcPos->GetReading();
    CVector3 cPos = tPosRead.Position;
+   CQuaternion cQuat = tPosRead.Orientation;
+   CRadians cAngle, cX, cY;
+   cQuat.ToEulerAngles(cAngle, cY, cX);
 
-   if(cPos.GetX() < FLOCKING_X){
-      SetWheelSpeedsFromVector(VectorToLight() + FlockingVector());
+   if(cPos.GetX() < FLOCKING_1 or cPos.GetX() > FLOCKING_2){
+      CVector2 cPos2(cPos.GetX(), cPos.GetY());
+      SetWheelSpeedsFromVector(VectorToGoal(cPos2, cAngle) + FlockingVector());
+      LOG << m_unRId << " flocking " << std::endl;
    }
-   else if (cPos.GetX() < DIFFUSION_X)
+   else if (cPos.GetY() > DIFFUSION_Y)
    {
+      LOG << m_unRId << " diffusing" << std::endl;
       /* Get the highest reading in front of the robot, which corresponds to the closest object */
       const CCI_KheperaIVProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
       UInt32 unMaxReadIdx = 0;
@@ -217,6 +226,7 @@ void CKheperaMixed::ControlStep() {
    }
    else
    {
+      LOG << m_unRId << " foraging" << std::endl;
       switch(m_sStateData.State) {
       case SStateData::STATE_RESTING: {
          Rest();
@@ -586,16 +596,26 @@ Real CKheperaMixed::SFlockingInteractionParams::GeneralizedLennardJones(Real f_d
 /****************************************/
 /****************************************/
 
-CVector2 CKheperaMixed::VectorToLight() {
+CVector2 CKheperaMixed::VectorToGoal(const CVector2& c_pos, const CRadians c_angle) {
    /* Get light readings */
-   const CCI_KheperaIVLightSensor::TReadings& tReadings = m_pcLight->GetReadings();
    /* Calculate a normalized vector that points to the closest light */
    CVector2 cAccum;
-   for(size_t i = 0; i < tReadings.size(); ++i) {
-      cAccum += CVector2(tReadings[i].Value, tReadings[i].Angle);
+   if (c_pos.GetX() < FLOCKING_1)
+   {
+      CVector2 cDiff = FLOCKING_GOAL_1 - c_pos;
+      Real fDistance = cDiff.Length();
+      CRadians fVecAngle = ATan2(FLOCKING_GOAL_1.GetY() - c_pos.GetY(), FLOCKING_GOAL_1.GetX() - c_pos.GetX()) - c_angle;
+      cAccum.FromPolarCoordinates(fDistance , fVecAngle); 
+   }
+   else if (c_pos.GetX() > FLOCKING_2)
+   {
+      CVector2 cDiff = FLOCKING_GOAL_2 - c_pos;
+      Real fDistance = cDiff.Length();
+      CRadians fVecAngle = ATan2(FLOCKING_GOAL_2.GetY() - c_pos.GetY(), FLOCKING_GOAL_2.GetX() - c_pos.GetX()) - c_angle;
+      cAccum.FromPolarCoordinates(fDistance , fVecAngle); 
    }
    if(cAccum.Length() > 0.0f) {
-      /* Make the vector long as 1/4 of the max speed */
+       // Make the vector long as 1/4 of the max speed 
       cAccum.Normalize();
       cAccum *= 0.25f * m_sWheelTurningParams.MaxSpeed;
    }
