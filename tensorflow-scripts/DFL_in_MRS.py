@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 import collections
 import functools
 import os
-import six
+#import six
 import time
 import glob
 from datetime import datetime

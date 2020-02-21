@@ -13,7 +13,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="100000"
+    <experiment length="10000"
                 ticks_per_second="10"
                 random_seed="SEED" />
   </framework>
@@ -68,11 +68,11 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions label="MasterLoopFunctions">
+  <loop_functions library="build/loop_functions/master_loop_functions/libargos3plugin_simulator_master_loop_functions.so" label="MasterLoopFunctions">
 
     <sub_loop_function library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
       label="trajectory_collection_loop_functions">
-      <collection filename="foraging_TIMESTAMP.dat" />
+      <collection filename="mixed_by_location_TIMESTAMP.dat" />
     </sub_loop_function>
 
     <sub_loop_functions library="build/loop_functions/mixed_loop_functions/libmixed_loop_functions.so"

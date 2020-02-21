@@ -1,14 +1,14 @@
 add_library(trajectory_collection_loop_functions MODULE 
   trajectory_collection_loop_functions.h
-  trajectory_collection_qtuser_functions.h
-  trajectory_collection_loop_functions.cpp
-  trajectory_collection_qtuser_functions.cpp)
+#  trajectory_collection_qtuser_functions.h
+  trajectory_collection_loop_functions.cpp)
+#  trajectory_collection_qtuser_functions.cpp)
 
 target_link_libraries(trajectory_collection_loop_functions
   argos3core_simulator
   argos3plugin_simulator_entities
   argos3plugin_simulator_kheperaiv
-  argos3plugin_simulator_qtopengl
+#  argos3plugin_simulator_qtopengl
 #   gtest_main
   argos3plugin_simulator_master_loop_functions
   ${ARGOS_QTOPENGL_LIBRARIES})
