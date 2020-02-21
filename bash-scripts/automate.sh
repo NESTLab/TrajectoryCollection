@@ -23,14 +23,14 @@ mkdir -p $CONFDIR
 cd $WORKDIR
 
 # Go through all the values for 
-for CONTROLLER in flocking #mixed #khepera_obstacleavoidance #flocking
+for CONTROLLER in khepera_obstacleavoidance mixed_by_location #flocking flocking #mixed
 do
     for SEED in 2 #7 10
     do 
-      for NOISE in 0.5 #0.1 0.5
+      for NOISE in 0.1 #0.1 0.5
       do
          # Go through all the values
-         for NBROBOTS in 10 20 #40
+         for NBROBOTS in 15 60 #40
          do
             cd $WORKDIR
             TIMESTAMP=`date "+%Y%m%d_%H%M%S"`

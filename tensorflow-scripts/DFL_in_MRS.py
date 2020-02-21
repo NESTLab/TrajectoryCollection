@@ -38,6 +38,8 @@ import sys
 
 path = sys.argv[1]
 graph_path = sys.argv[2]
+PERCENT_QUORUM = sys.argv[3]
+QUOTA = sys.argv[4]
 
 # Global constants and variables
 
@@ -65,12 +67,6 @@ VALIDATION_STEPS_C = 50
 # Generic
 EXP_DURATION = 100000
 LOCAL_EPOCHS = 1
-PARTITION_SIZE = 30
-# Server FL
-NUM_ROUNDS = 100 # going to be overridden
-ROUND_DURATION = int(EXP_DURATION / NUM_ROUNDS)
-# Distributed FL
-PERCENT_QUORUM = 0.5
 
 samples_central = {}
 samples = {} # samples{ <exp_id> : {<rid>: { <traj_id> : { 'traj' : [], 'end' : <time_collected> }}}
@@ -211,9 +207,9 @@ def create_training_and_val_batch(batch, past_history=PAST_HISTORY, future_targe
 
 def create_datasets_FL(x_train, x_val, y_train, y_val):
     train_set = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    train_set = train_set.cache().batch(PARTITION_SIZE).repeat()
+    train_set = train_set.cache().batch(QUOTA).repeat()
     val_set = tf.data.Dataset.from_tensor_slices((x_val, y_val))
-    val_set = val_set.cache().batch(PARTITION_SIZE).repeat()
+    val_set = val_set.cache().batch(QUOTA).repeat()
     return train_set, val_set
 
 
@@ -320,7 +316,7 @@ for exp in samples.keys():
         
         # Find time of barrier start (resume from indices at previous barrier)
         current_indices = last_idx_previous_round
-        tmp_idx = np.add(current_indices, PARTITION_SIZE)
+        tmp_idx = np.add(current_indices, QUOTA)
         # ready = {samples[exp][i][tmp_idx[i-1]]['end'] : i if tmp_idx[i-1] in samples[exp][i].keys() for i in samples[exp].keys()}
         ready = {}
         for i in samples[exp].keys():
@@ -405,26 +401,25 @@ for exp in samples.keys():
 data_DFL = {}
 for exp in history_DFL:
     data_DFL.update({exp : {} })
-    for round_num in range(1, NUM_ROUNDS):
-        data_DFL[exp].update({round_num: {}})
+    for r in range(1, round_num):
+        data_DFL[exp].update({r: {}})
         for robot in history_DFL[exp]:
-            if (round_num in history_DFL[exp][robot].keys()):
-                data_DFL[exp][round_num].update({robot : {}})
-                data_DFL[exp][round_num][robot] = {'losses' : history_DFL[exp][robot][round_num]['losses'], 
-                                                    'num_samples' : history_DFL[exp][robot][round_num]['num_samples'],
-                                                    'time': history_DFL[exp][robot][round_num]['time']}
+            if (r in history_DFL[exp][robot].keys()):
+                data_DFL[exp][r].update({robot : {}})
+                data_DFL[exp][r][robot] = {'losses' : history_DFL[exp][robot][r]['losses'], 
+                                                    'num_samples' : history_DFL[exp][robot][r]['num_samples'],
+                                                    'time': history_DFL[exp][robot][r]['time']}
 
-filehandler = open('DFL_history_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+filehandler = open('DFL_history_' + path[-10:-4] + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(data_DFL, filehandler)
 filehandler.close()
 
-filehandler = open('DFL_summary_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+filehandler = open('DFL_summary_' + path[-10:-4] + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(summary_DFL, filehandler)
 filehandler.close()
 
 # Overwrite global constant
 
-NUM_ROUNDS = round_num
 EPOCHS_C = round_num
 
 # # 3. Centralized 
@@ -645,20 +640,20 @@ for exp in samples.keys():
 data_FL = {}
 for exp in history_FL:
     data_FL.update({exp : {} })
-    for round_num in range(1, NUM_ROUNDS):
-        data_FL[exp].update({round_num: {}})
+    for r in range(1, round_num):
+        data_FL[exp].update({r: {}})
         for robot in history_FL[exp]:
-            if (round_num in history_FL[exp][robot].keys()):
-                data_FL[exp][round_num].update({robot : {}})
-                data_FL[exp][round_num][robot] = {'losses' : history_FL[exp][robot][round_num]['losses'], 
-                                                    'num_samples' : history_FL[exp][robot][round_num]['num_samples'],
-                                                    'time': history_FL[exp][robot][round_num]['time']}
+            if (r in history_FL[exp][robot].keys()):
+                data_FL[exp][r].update({robot : {}})
+                data_FL[exp][r][robot] = {'losses' : history_FL[exp][robot][r]['losses'], 
+                                                    'num_samples' : history_FL[exp][robot][r]['num_samples'],
+                                                    'time': history_FL[exp][robot][r]['time']}
 
-filehandler = open('FL_history_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+filehandler = open('FL_history_' + path[-10:-4] + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(data_FL, filehandler)
 filehandler.close()
 
-filehandler = open('FL_summary_' + path[-10:-4] + '_' + str(PARTITION_SIZE) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+filehandler = open('FL_summary_' + path[-10:-4] + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(summary_FL, filehandler)
 filehandler.close()
 

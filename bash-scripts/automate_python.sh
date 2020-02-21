@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# SBATCH -J argosRun
+# SBATCH -n 1
+# SBATCH -N 1
+# SBATCH -p short
+# SBATCH --mem 32G
+# SBATCH -C E5-2680
 
 # Stop execution after any error
 set -e
@@ -10,4 +16,10 @@ WORKDIR=$BASE_LOC/../tensorflow-scripts
 
 cd $WORKDIR
 
-python DFL_in_MRS.py '../data/avoidance_20200131_204454.dat' '../data/G_avoidance_20200131_204454.dat'
+for QUORUM in 0.2 0.6
+do
+	for QUOTA in 20 60
+	do
+		python DFL_in_MRS.py '../data/[!G_]**.dat' '../data/G_**.dat' ${QUORUM} ${QUOTA}
+	done
+done
