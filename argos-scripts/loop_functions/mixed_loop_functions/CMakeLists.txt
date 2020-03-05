@@ -1,11 +1,11 @@
 link_directories(${CMAKE_BINARY_DIR}/controllers/khepera_mixed)
 set(mixed_loop_functions_SOURCES mixed_loop_functions.cpp)
 
-if(ARGOS_COMPILE_QTOPENGL)
+#if(ARGOS_COMPILE_QTOPENGL)
   set(mixed_loop_functions_SOURCES
-    ${mixed_loop_functions_SOURCES}
-    foraging_qt_user_functions.cpp)
-endif(ARGOS_COMPILE_QTOPENGL)
+    ${mixed_loop_functions_SOURCES})
+#    foraging_qt_user_functions.cpp)
+#endif(ARGOS_COMPILE_QTOPENGL)
 
 add_library(mixed_loop_functions MODULE ${mixed_loop_functions_SOURCES})
 target_link_libraries(mixed_loop_functions

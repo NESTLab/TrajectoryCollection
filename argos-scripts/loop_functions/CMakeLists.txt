@@ -12,7 +12,6 @@ add_subdirectory(trajectory_collection_loop_functions)
 
 
 # # If Qt+OpenGL dependencies were found, descend into these directories
- if(ARGOS_COMPILE_QTOPENGL)
 #   add_subdirectory(id_loop_functions)
 #   add_subdirectory(manualcontrol_loop_functions)
- endif(ARGOS_COMPILE_QTOPENGL)
+

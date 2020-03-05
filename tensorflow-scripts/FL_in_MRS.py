@@ -292,7 +292,7 @@ for exp in samples.keys():
         t = times_at_quota[min_learners - 1]
 
         summary_FL[exp]['round_time'].update({round_num : t})
-        
+
         print("FL round ", round_num, "at t ", t)
 
         # One round for each robot: data collection, local training and global update

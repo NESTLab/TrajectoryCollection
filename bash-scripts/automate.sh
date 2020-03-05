@@ -23,7 +23,7 @@ mkdir -p $CONFDIR
 cd $WORKDIR
 
 # Go through all the values for 
-for CONTROLLER in khepera_obstacleavoidance mixed_by_location #flocking flocking #mixed
+for CONTROLLER in mixed_by_location #flocking flocking #mixed
 do
     for SEED in 2 #7 10
     do 

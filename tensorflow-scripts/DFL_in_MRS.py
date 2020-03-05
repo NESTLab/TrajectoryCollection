@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 import collections
 import functools
 import os
+#import six
 import time
 import glob
 from datetime import datetime
@@ -321,9 +322,9 @@ for exp in samples.keys():
                     ready[samples[exp][i][tmp_idx[i-1]]['end']].append(i)
         # Find first robot to get enough data to trigger barrier
         t = min(list(ready.keys()))    
-            
-        summary_DFL[exp]['entry_barrier_start'].append(t)
 
+        summary_DFL[exp]['entry_barrier_start'].append(t)
+            
         b = Barrier()
         
         while(not b.quorum(QUORUM) and t < EXP_DURATION):
@@ -416,11 +417,11 @@ for exp in history_DFL:
                                                     'num_samples' : history_DFL[exp][robot][r]['num_samples'],
                                                     'time': history_DFL[exp][robot][r]['time']}
 
-filehandler = open('DFL_history_' + filename[-10:-4] + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+filehandler = open('DFL_history_' + filename[-10:-4] + "_"  + str(PERCENT_QUORUM) + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(data_DFL, filehandler)
 filehandler.close()
 
-filehandler = open('DFL_summary_' + filename[-10:-4] + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
+filehandler = open('DFL_summary_' + filename[-10:-4] + "_" + str(PERCENT_QUORUM)  + '_' + str(QUOTA) + '_'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
 pickle.dump(summary_DFL, filehandler)
 filehandler.close()
 
