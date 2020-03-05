@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# SBATCH -J argosRun
-# SBATCH -n 1
-# SBATCH -N 1
-# SBATCH -p short
-# SBATCH --mem 96G
-# SBATCH -C E5-2680
+#SBATCH -J FA0660
+#SBATCH -n 1
+#SBATCH -N 1
+#SBATCH -p short
+#SBATCH --mem 64G
+#SBATCH -C E5-2680
 
 # Stop execution after any error
 set -e
@@ -16,9 +16,9 @@ WORKDIR=$BASE_LOC/../tensorflow-scripts
 
 cd $WORKDIR
 
-for QUORUM in 0.2 0.6
+for QUORUM in 0.6 # 0.6
 do
-	for QUOTA in 20 60
+	for QUOTA in 60  #  20 60
 	do
 		python FL_in_MRS.py '../data/avoidance**.dat' ${QUORUM} ${QUOTA}
 	done

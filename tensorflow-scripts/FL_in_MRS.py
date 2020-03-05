@@ -251,6 +251,7 @@ for exp in samples.keys():
     summary_FL.update({exp : {}})
     
     summary_FL[exp].update({'num_participants' : {}})
+    summary_FL[exp].update({'round_time' : {}})
 
     # Per experiment settings 
     num_robots = len(samples[exp].keys())
@@ -290,6 +291,8 @@ for exp in samples.keys():
         times_at_quota.sort()
         t = times_at_quota[min_learners - 1]
 
+        summary_FL[exp]['round_time'].update({round_num : t})
+
         print("FL round ", round_num, "at t ", t)
 
         # One round for each robot: data collection, local training and global update
@@ -300,6 +303,9 @@ for exp in samples.keys():
             current_idx =  last_idx_previous_round[i-1]
             while(samples[exp][i][current_idx]['end'] <= t):
                 current_idx+=1
+                if(current_idx not in samples[exp][i].keys()):
+                    current_idx -= 1
+                    break
             
             num_samples = current_idx - last_idx_previous_round[i-1]
             
