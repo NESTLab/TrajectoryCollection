@@ -322,6 +322,8 @@ for exp in samples.keys():
         # Find first robot to get enough data to trigger barrier
         t = min(list(ready.keys()))    
             
+        summary_DFL[exp]['entry_barrier_start'].append(t)
+
         b = Barrier()
         
         while(not b.quorum(QUORUM) and t < EXP_DURATION):
@@ -398,6 +400,7 @@ for exp in samples.keys():
         
         summary_DFL[exp]['exit_barrier_end'].append(t)
         round_num = round_num + 1
+    summary_DFL[exp].update({'last_weights' : current_weights})
 
 # ### 4.3 Save training data
 
@@ -513,9 +516,9 @@ simple_lstm.fit(train_set_C, epochs=EPOCHS_C,
               callbacks=[myHistory])
 
 # ##3.4 Save Training History
-
+final_weights = [v.numpy() for v in simple_lstm.trainable_weights]
 filehandler = open('Centralized_' + filename[-10:-4] + '_' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), 'wb') 
-data_C = {'losses' : myHistory.history, 'times' : myHistory.times}
+data_C = {'losses' : myHistory.history, 'times' : myHistory.times, 'last_weights': final_weights}
 pickle.dump(data_C, filehandler)
 filehandler.close()
 
