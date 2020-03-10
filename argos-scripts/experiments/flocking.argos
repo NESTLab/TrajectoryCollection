@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="100"
+    <experiment length="10000"
                 ticks_per_second="10"
                 random_seed="124" />
   </framework>
@@ -50,6 +50,10 @@
       label="trajectory_collection_loop_functions">
       <collection filename="flocking_TIMESTAMP.dat" />
     </sub_loop_function>
+
+    <sub_loop_functions library="build/loop_functions/flocking_loop_functions/libflocking_loop_functions"
+                    label="flocking_loop_functions">
+    </sub_loop_functions>
   </loop_functions>
 
 
@@ -60,14 +64,34 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="30,30,1" center="0,0,0.5">
+  <arena size="5,5,2" center="0,0,0.5">
 
-    <light id="light"
+<!--     <light id="light"
            position="8.9,2.7,0.5"
            orientation="0,0,0"
            color="yellow"
            intensity="3.0"
+           medium="leds" /> -->
+
+    <light id="light"
+           position="-2,-1.5,1.0"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="3.0"
            medium="leds" />
+
+    <box id="wall_north" size="5,0.1,0.5" movable="false">
+      <body position="0,2.5,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="5,0.1,0.5" movable="false">
+      <body position="0,-2.5,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="0.1,5,0.5" movable="false">
+      <body position="2.5,0,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="0.1,5,0.5" movable="false">
+      <body position="-2.5,0,0" orientation="0,0,0" />
+    </box>
 
     <!--
         You can distribute entities randomly. Here, we distribute
@@ -80,7 +104,7 @@
     -->
     
     <distribute>
-      <position method="uniform" min="1,0,0" max="4,4,0" />
+      <position method="uniform" min="0,0,0" max="2,2,0" />
       <!-- <position method="uniform" min="4,4,0" max="5,5,0" /> -->
       <!-- <orientation method="constant" values="0,0,0"/> -->
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />

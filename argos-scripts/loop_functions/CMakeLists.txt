@@ -2,6 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 # Descend into the foraging_loop_functions directory
 add_subdirectory(foraging_loop_functions)
+add_subdirectory(flocking_loop_functions)
 add_subdirectory(mixed_loop_functions)
 
 # # Descend into the custom_distributions_loop_functions directory
