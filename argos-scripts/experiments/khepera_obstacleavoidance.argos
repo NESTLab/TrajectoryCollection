@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="100"
                 ticks_per_second="10"
-                random_seed="124" />
+                random_seed="2" />
   </framework>
 
   <!-- *************** -->
@@ -19,13 +19,14 @@
     <khepera_obstacleavoidance_controller id="fdc"
                                         library="build/controllers/khepera_obstacleavoidance/libkhepera_obstacleavoidance.so">
       <actuators>
-        <differential_steering implementation="default" />
-        <range_and_bearing implementation="default" />
+        <differential_steering implementation="default" noise_std_dev="0"/>
+        <range_and_bearing implementation="default"/>
       </actuators>
       <sensors>
         <!-- <positioning implementation="default" /> -->
         <kheperaiv_proximity implementation="default" show_rays="false" />
-        <range_and_bearing implementation="medium" medium="rab" show_rays="false"/>
+        <range_and_bearing implementation="medium" medium="rab" 
+        show_rays="true" rab_range="2" noise_std_dev="0"/>
       </sensors>
       <params velocity="5" />
     </khepera_obstacleavoidance_controller>
@@ -39,7 +40,7 @@
 
     <sub_loop_function library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
       label="trajectory_collection_loop_functions">
-      <collection filename="avoidance_TIMESTAMP.dat" />
+      <collection filename="avoidance_debugging.dat" />
     </sub_loop_function>
 
   </loop_functions>
@@ -75,7 +76,7 @@
     <distribute>
       <position method="uniform" min="-2,-2,0" max="2,2,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="40" max_trials="100" base_num = "1">
+      <entity quantity="15" max_trials="100" base_num = "1">
         <kheperaiv id="kh">
           <controller config="fdc" />
         </kheperaiv>

@@ -24,33 +24,27 @@ void CTrajectoryCollectionQTUserFunctions::DrawInWorld()
    for(auto element : m_tPotentialTrajectories)
    {
       CKheperaIVEntity& c_entity = *(element.first);
-      // if(c_entity.GetId() == "kh1") 
-      // {
-         /* Go through all the potential trajectories and draw them */
-         for(size_t i = 0; i < m_tPotentialTrajectories[&(c_entity)].size(); ++i)
-         {
-            DrawWaypointsInWorld(m_tPotentialTrajectories[&c_entity][i].Waypoints,
-              m_tPotentialTrajectories[&c_entity][i].StartPosition,
-              m_tPotentialTrajectories[&c_entity][i].StartOrientation,
-              CColor::RED);
-         }
-      // }
+      /* Go through all the potential trajectories and draw them */
+      for(size_t i = 0; i < m_tPotentialTrajectories[&(c_entity)].size(); ++i)
+      {
+         DrawWaypointsInWorld(m_tPotentialTrajectories[&c_entity][i].Waypoints,
+            m_tPotentialTrajectories[&c_entity][i].StartPosition,
+            m_tPotentialTrajectories[&c_entity][i].StartOrientation,
+            CColor::RED);
+      }
    }
 
    for(auto element : m_tSavedTrajectories)
    {
       CKheperaIVEntity& c_entity = *(element.first);
-      // if(c_entity.GetId() == "kh1") 
-      // {
-         /* Go through all the saved trajectories and draw them */
-         for(size_t i = 0; i < m_tSavedTrajectories[&c_entity].size(); ++i)
-         {
-            DrawWaypointsInWorld(m_tSavedTrajectories[&c_entity][i].Waypoints,
-                          m_tSavedTrajectories[&c_entity][i].StartPosition,
-                          m_tSavedTrajectories[&c_entity][i].StartOrientation,
-                          CColor::BLUE);
-         }      
-      // }
+      /* Go through all the saved trajectories and draw them */
+      for(size_t i = 0; i < m_tSavedTrajectories[&c_entity].size(); ++i)
+      {
+         DrawWaypointsInWorld(m_tSavedTrajectories[&c_entity][i].Waypoints,
+                        m_tSavedTrajectories[&c_entity][i].StartPosition,
+                        m_tSavedTrajectories[&c_entity][i].StartOrientation,
+                        CColor::BLUE);
+      }      
    }
 }
 
@@ -93,27 +87,32 @@ void CTrajectoryCollectionQTUserFunctions::Draw(CKheperaIVEntity& c_entity) {
 /****************************************/
 
 void CTrajectoryCollectionQTUserFunctions::DrawWaypointsInWorld(const std::vector<CVector3>& c_waypoints, 
-   const CVector3& c_startPosition,
+   const CVector3& c_PWO,
    const CQuaternion& c_WO,
    const CColor& c_color) {
+
+   // DrawPoint(c_PWO);
+
    /* Start drawing segments when you have at least two points */
    if(c_waypoints.size() > 1) {
       size_t unStart = 0;
       size_t unEnd = 1;
-      CVector3 cStart, cEnd;
+      CVector3 cStartW, cEndW;
 
       CRadians cXAngle, cYAngle, cZWOAngle;
       c_WO.ToEulerAngles(cZWOAngle, cYAngle, cXAngle);
 
-      CVector3 cPWO = c_startPosition;
-      CVector3 cTemp(c_waypoints[unStart]);
-      cStart = (cTemp - cPWO).RotateZ(-cZWOAngle);
+      CVector3 cPWO(c_PWO) ; //= c_startPosition;
+      CVector3 cPO(c_waypoints[unStart]);
+      // cStartW = (cPO - cPWO).RotateZ(-cZWOAngle);
+      cStartW = (CVector3(cPO)).RotateZ(cZWOAngle) + cPWO;
       while(unEnd < c_waypoints.size()) {
-         cTemp = c_waypoints[unEnd];
-         cEnd = (cTemp - cPWO).RotateZ(-cZWOAngle);
-         DrawRay(CRay3(cEnd,
-                       cStart), c_color);
-         cStart = cEnd;
+         cPO = c_waypoints[unEnd];
+         // cEndW = (cPO - cPWO).RotateZ(-cZWOAngle);
+         cEndW = (CVector3(cPO)).RotateZ(cZWOAngle) + cPWO;
+         DrawRay(CRay3(cEndW,
+                       cStartW), c_color);
+         cStartW = cEndW;
          ++unStart;
          ++unEnd;
       }
@@ -127,6 +126,7 @@ void CTrajectoryCollectionQTUserFunctions::DrawWaypoints(const std::vector<CVect
    const CVector3& c_currPosition,
    const CQuaternion& c_WR,
    const CColor& c_color) {
+
    /* Start drawing segments when you have at least two points */
    if(c_waypoints.size() > 1) {
       size_t unStart = 0;

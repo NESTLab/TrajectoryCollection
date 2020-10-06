@@ -30,6 +30,7 @@ private:
                       const CVector3& c_currPosition,
                       const CQuaternion& c_currOrientation,
                       const CColor& c_color);
+                      
   void DrawWaypointsInWorld(const std::vector<CVector3>& c_waypoints, 
                       const CVector3& c_startPosition,
                       const CQuaternion& c_startOrientation,
@@ -37,8 +38,8 @@ private:
 
 private:
 
-   CTrajectoryCollectionLoopFunctions::TTrajectoryMap m_tPotentialTrajectories;
-   CTrajectoryCollectionLoopFunctions::TTrajectoryMap m_tSavedTrajectories;
+   CTrajectoryCollectionLoopFunctions::TMapKheperaToTrajectories m_tPotentialTrajectories;
+   CTrajectoryCollectionLoopFunctions::TMapKheperaToTrajectories m_tSavedTrajectories;
    CTrajectoryCollectionLoopFunctions& m_cTrajLF;
 
 };

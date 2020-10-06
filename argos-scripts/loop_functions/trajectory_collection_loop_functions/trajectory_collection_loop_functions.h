@@ -1,13 +1,13 @@
 #ifndef TRAJECTORY_COLLECTION_LOOP_FUNCTIONS_H
 #define TRAJECTORY_COLLECTION_LOOP_FUNCTIONS_H
 
-// #include <argos3/core/utility/math/matrix/transformationmatrix2.h>
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_entity.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
-// #include <argos3/plugins/robots/generic/control_interface/ci_positioning_sensor.h>
+#include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #include <argos3/core/utility/logging/argos_log.h>
 #include <map>
+#include <algorithm>
 
 using namespace argos;
 
@@ -16,6 +16,7 @@ class CTrajectoryCollectionLoopFunctions : public CLoopFunctions {
 public:
 
    struct STrajectoryData {
+      UInt32 TrackedRobot;
       UInt32 StartTime;
       UInt32 PrevTime;
       CVector3 StartPosition;
@@ -26,8 +27,8 @@ public:
          PrevTime(0){}
    };
 
-   typedef std::map<UInt32, STrajectoryData > TPerKhepTrajectoryMap;
-   typedef std::map<CKheperaIVEntity*, TPerKhepTrajectoryMap > TTrajectoryMap;
+   typedef std::map<CKheperaIVEntity*, std::vector<STrajectoryData> > TMapKheperaToTrajectories;
+
 
 public:
 
@@ -41,10 +42,10 @@ public:
 
    virtual void PostExperiment();
 
-   inline const TTrajectoryMap& GetPotentialTrajectories() const {
+   inline const TMapKheperaToTrajectories& GetPotentialTrajectories() const {
       return m_tPotentialTrajectories;
    }
-   inline const TTrajectoryMap& GetSavedTrajectories() const {
+   inline const TMapKheperaToTrajectories& GetSavedTrajectories() const {
       return m_tSavedTrajectories;
    }
 
@@ -59,8 +60,8 @@ private:
    /* Vector of RAB sensor pointers */
    std::vector<CCI_RangeAndBearingSensor*> m_pcRABSensors;
    /* Maps of potential and saved trajectories */
-   TTrajectoryMap m_tPotentialTrajectories;
-   TTrajectoryMap m_tSavedTrajectories;
+   TMapKheperaToTrajectories m_tPotentialTrajectories;
+   TMapKheperaToTrajectories m_tSavedTrajectories;
 
    UInt32 m_unClock;
 

@@ -27,7 +27,7 @@ for CONTROLLER in mixed_by_location #flocking flocking #mixed
 do
     for SEED in 2 #7 10
     do 
-      for NOISE in 0.1 #0.1 0.5
+      for NOISE in 0 #0.1 0.5
       do
          # Go through all the values
          for NBROBOTS in 15 60 #40
