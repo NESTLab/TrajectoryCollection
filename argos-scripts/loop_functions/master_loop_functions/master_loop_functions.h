@@ -48,6 +48,8 @@ public:
     bool IsExperimentFinished() override;
 
     void PostExperiment() override;
+
+   CColor GetFloorColor(const CVector2& c_position_on_plane) override;
     
     CLoopFunctions& GetLoopFunction(std::string label);
 
@@ -63,6 +65,8 @@ public:
 
 private:
     std::vector<TLoopFunctionTuple> m_cLoopFunctions;
+   CLoopFunctions* m_cForagingLF;
+   CLoopFunctions* m_cMixedLF;
 
 };
 

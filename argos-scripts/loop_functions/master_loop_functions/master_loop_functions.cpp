@@ -3,6 +3,8 @@
 #include <argos3/core/utility/plugins/dynamic_loading.h>
 
 void CMasterLoopFunctions::Init(TConfigurationNode& t_tree){
+    m_cForagingLF = nullptr;
+    m_cMixedLF = nullptr;
     TConfigurationNodeIterator cCurrNode;
     // iterate through all nodes
     for(cCurrNode = cCurrNode.begin(&t_tree);
@@ -28,6 +30,11 @@ void CMasterLoopFunctions::Init(TConfigurationNode& t_tree){
 
                 //push teh new loop function on the to vector
                 m_cLoopFunctions.emplace_back(SLoopFunctionTuple(cNewFunction, unPriority, strLabel));
+
+                if(strLabel == "foraging_loop_functions")
+                   m_cForagingLF = cNewFunction;
+                else if(strLabel == "mixed_loop_functions")
+                   m_cMixedLF = cNewFunction;
             }
                 catch(CARGoSException& ex) {
                     THROW_ARGOSEXCEPTION_NESTED("Error initializing master functions", ex);
@@ -93,6 +100,15 @@ void CMasterLoopFunctions::PostExperiment(){
     for(TLoopFunctionTuple tCurrentLF: m_cLoopFunctions){
         tCurrentLF.pcLoopFunction->PostExperiment();
     }
+}
+
+/****************************************/
+/****************************************/
+
+CColor CMasterLoopFunctions::GetFloorColor(const CVector2& c_position_on_plane) {
+   if(m_cForagingLF != nullptr) return m_cForagingLF->GetFloorColor(c_position_on_plane);
+   if(m_cMixedLF != nullptr)    return m_cMixedLF->GetFloorColor(c_position_on_plane);
+   return CColor::WHITE;
 }
 
 /****************************************/

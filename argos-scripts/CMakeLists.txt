@@ -72,10 +72,13 @@ include(ARGoSCheckQTOpenGL)
 #endif(GALIB_FOUND)
 
 # Find Lua
-#find_package(Lua52)# REQUIRED)
+find_package(Lua53)
+if(${Lua53_FOUND})
+  include_directories(${LUA_INCLUDE_DIR})
+endif(${Lua53_FOUND})
 
 # Set ARGoS include dir
-include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS})# ${LUA_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS})
 
 # Set ARGoS link dir
 link_directories(${ARGOS_LIBRARY_DIRS})

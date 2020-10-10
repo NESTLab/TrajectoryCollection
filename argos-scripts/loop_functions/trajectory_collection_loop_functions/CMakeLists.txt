@@ -6,6 +6,7 @@ add_library(trajectory_collection_loop_functions MODULE
 
 target_link_libraries(trajectory_collection_loop_functions
   argos3core_simulator
+  argos3plugin_simulator_genericrobot
   argos3plugin_simulator_entities
   argos3plugin_simulator_kheperaiv
   argos3plugin_simulator_qtopengl
