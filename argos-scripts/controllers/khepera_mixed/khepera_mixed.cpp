@@ -4,9 +4,9 @@
 #include <argos3/core/utility/configuration/argos_configuration.h>
 #include <argos3/core/utility/logging/argos_log.h>
 
-const Real FLOCKING_1 = -1.0;
-const Real FLOCKING_2 = 1.0;
-const Real DIFFUSION_Y = -1.0;
+const Real FLOCKING_1 = -2.0;
+const Real FLOCKING_2 =  2.0;
+const Real DIFFUSION_Y = 0.0;
 const CVector2 FLOCKING_GOAL_1 = CVector2(-0.95, -2.5);
 const CVector2 FLOCKING_GOAL_2 = CVector2(1.05, 2.5);
 
@@ -186,11 +186,11 @@ void CKheperaMixed::ControlStep() {
    if(cPos.GetX() < FLOCKING_1 or cPos.GetX() > FLOCKING_2){
       CVector2 cPos2(cPos.GetX(), cPos.GetY());
       SetWheelSpeedsFromVector(VectorToGoal(cPos2, cAngle) + FlockingVector());
-      LOG << m_unRId << " flocking " << std::endl;
+      m_strDebugMsg = "flocking";
    }
    else if (cPos.GetY() > DIFFUSION_Y)
    {
-      LOG << m_unRId << " diffusing" << std::endl;
+      m_strDebugMsg = "diffusing";
       /* Get the highest reading in front of the robot, which corresponds to the closest object */
       const CCI_KheperaIVProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
       UInt32 unMaxReadIdx = 0;
@@ -226,17 +226,20 @@ void CKheperaMixed::ControlStep() {
    }
    else
    {
-      LOG << m_unRId << " foraging" << std::endl;
+      m_strDebugMsg = "foraging";
       switch(m_sStateData.State) {
       case SStateData::STATE_RESTING: {
+         m_strDebugMsg += " resting";
          Rest();
          break;
       }
       case SStateData::STATE_EXPLORING: {
+         m_strDebugMsg += " exploring";
          Explore();
          break;
       }
       case SStateData::STATE_RETURN_TO_NEST: {
+         m_strDebugMsg += " returning";
          ReturnToNest();
          break;
       }

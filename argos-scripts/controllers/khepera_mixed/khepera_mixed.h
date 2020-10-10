@@ -262,6 +262,10 @@ public:
       return m_sFoodData;
    }
 
+   std::string GetDebugMsg() const {
+      return m_strDebugMsg;
+   }
+
 private:
 
    // FORAGING STUFF
@@ -373,6 +377,9 @@ private:
 
    /* Wheel speed. */
    Real m_fWheelVelocity;
+
+   /* Debug message to show */
+   std::string m_strDebugMsg;
 
    /* Robot unique identifier */
    UInt8 m_unRId;

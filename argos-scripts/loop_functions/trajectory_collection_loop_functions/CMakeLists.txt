@@ -5,6 +5,7 @@ add_library(trajectory_collection_loop_functions MODULE
   trajectory_collection_qtuser_functions.cpp)
 
 target_link_libraries(trajectory_collection_loop_functions
+  khepera_mixed
   argos3core_simulator
   argos3plugin_simulator_genericrobot
   argos3plugin_simulator_entities

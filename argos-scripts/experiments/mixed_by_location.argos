@@ -13,7 +13,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="100000"
+    <experiment length="50000"
                 ticks_per_second="10"
                 random_seed="123" />
   </framework>
@@ -51,9 +51,9 @@
                collision_rule_explore_to_rest_delta_prob="0.1"
                social_rule_explore_to_rest_delta_prob="0.1"
                social_rule_rest_to_explore_delta_prob="0.1"
-               minimum_resting_time="5"
-               minimum_unsuccessful_explore_time="600"
-               minimum_search_for_place_in_nest_time="5">
+               minimum_resting_time="2"
+               minimum_unsuccessful_explore_time="6000"
+               minimum_search_for_place_in_nest_time="50">
           <food_rule active="true" food_rule_explore_to_rest_delta_prob="0.1" />
         </state>
         <flocking target_distance="75"
@@ -77,7 +77,7 @@
 
     <sub_loop_functions library="build/loop_functions/mixed_loop_functions/libmixed_loop_functions.so"
                     label="mixed_loop_functions">
-      <foraging items="35"
+      <foraging items="30"
                 radius="0.1"
                 energy_per_item="1000"
                 energy_per_walking_robot="1"

@@ -1,6 +1,7 @@
 #include "trajectory_collection_qtuser_functions.h"
 #include "trajectory_collection_loop_functions.h"
-#include "../master_loop_functions/master_loop_functions.h"
+#include <loop_functions/master_loop_functions/master_loop_functions.h>
+#include <controllers/khepera_mixed/khepera_mixed.h>
 
 /****************************************/
 /****************************************/
@@ -18,6 +19,34 @@ CTrajectoryCollectionQTUserFunctions::CTrajectoryCollectionQTUserFunctions() :
 
 void CTrajectoryCollectionQTUserFunctions::DrawInWorld()
 {
+   /* Draw regions */
+   DrawRay(
+      CRay3(
+         CVector3(-2,-3.5,0.02), // start
+         CVector3(-2, 3.5,0.02)  // end
+         ),
+      CColor::CYAN,
+      5.0
+      );
+   DrawRay(
+      CRay3(
+         CVector3( 2,-3.5,0.02), // start
+         CVector3( 2, 3.5,0.02)  // end
+         ),
+      CColor::CYAN,
+      5.0
+      );
+   DrawRay(
+      CRay3(
+         CVector3(-3.5,0,0.02), // start
+         CVector3( 3.5,0,0.02)  // end
+         ),
+      CColor::MAGENTA,
+      5.0
+      );
+
+   /* Draw trajectories */
+   
    m_tSavedTrajectories = m_cTrajLF.GetSavedTrajectories();
    m_tPotentialTrajectories = m_cTrajLF.GetPotentialTrajectories();
 
@@ -52,9 +81,17 @@ void CTrajectoryCollectionQTUserFunctions::DrawInWorld()
 /****************************************/
 
 void CTrajectoryCollectionQTUserFunctions::Draw(CKheperaIVEntity& c_entity) {
-   /* Draw robot id */
+   std::string strMsg = c_entity.GetId();
+   /* Get the controller */
+   CKheperaMixed* pcCntrl = dynamic_cast<CKheperaMixed*>(&c_entity.GetControllableEntity().GetController());
+   /* Make sure it's a mixed controller */
+   if(pcCntrl != 0) {
+      /* Get the debug msg */
+      strMsg += ": " + pcCntrl->GetDebugMsg();
+   }
+   /* Write debug msg */
    DrawText(CVector3(0.0, 0.0, 0.1),   // position
-            c_entity.GetId().c_str()); // text
+            strMsg.c_str()); // text
 
    // CVector3 cCurrentPos = c_entity.GetEmbodiedEntity().GetOriginAnchor().Position;
    // CQuaternion cCurrentOrientation = c_entity.GetEmbodiedEntity().GetOriginAnchor().Orientation;
