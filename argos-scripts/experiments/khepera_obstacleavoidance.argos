@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="100"
+    <experiment length="5000"
                 ticks_per_second="10"
                 random_seed="2" />
   </framework>
@@ -19,14 +19,18 @@
     <khepera_obstacleavoidance_controller id="fdc"
                                         library="build/controllers/khepera_obstacleavoidance/libkhepera_obstacleavoidance.so">
       <actuators>
-        <differential_steering implementation="default" noise_std_dev="0"/>
+        <differential_steering implementation="default"
+                               bias_avg="0"
+                               bias_stddev="0.0001"
+                               factor_avg="1"
+                               factor_stddev="0" />
         <range_and_bearing implementation="default"/>
       </actuators>
       <sensors>
         <!-- <positioning implementation="default" /> -->
         <kheperaiv_proximity implementation="default" show_rays="false" />
         <range_and_bearing implementation="medium" medium="rab" 
-        show_rays="true" rab_range="2" noise_std_dev="0"/>
+        show_rays="true" rab_range="2" noise_std_dev="0.01"/>
       </sensors>
       <params velocity="5" />
     </khepera_obstacleavoidance_controller>

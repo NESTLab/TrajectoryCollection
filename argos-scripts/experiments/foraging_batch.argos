@@ -13,7 +13,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="10000"
+    <experiment length="5000"
                 ticks_per_second="10"
                 random_seed="SEED" />
   </framework>
@@ -26,7 +26,11 @@
     <khepera_foraging_controller id="ffc"
                                  library="build/controllers/khepera_foraging/libkhepera_foraging">
       <actuators>
-        <differential_steering implementation="default" noise_std_dev="NOISE_WH" />
+        <differential_steering implementation="default"
+                               bias_avg="0"
+                               bias_stddev="0.0001"
+                               factor_avg="1"
+                               factor_stddev="0" />
         <leds implementation="default" medium="leds" />
         <range_and_bearing implementation="default" />
       </actuators>
@@ -50,8 +54,8 @@
                collision_rule_explore_to_rest_delta_prob="0.01"
                social_rule_explore_to_rest_delta_prob="0.01"
                social_rule_rest_to_explore_delta_prob="0.01"
-               minimum_resting_time="50"
-               minimum_unsuccessful_explore_time="600"
+               minimum_resting_time="2"
+               minimum_unsuccessful_explore_time="6000"
                minimum_search_for_place_in_nest_time="50">
           <food_rule active="true" food_rule_explore_to_rest_delta_prob="0.01" />
         </state>
@@ -72,7 +76,7 @@
 
     <sub_loop_functions library="build/loop_functions/foraging_loop_functions/libforaging_loop_functions"
                     label="foraging_loop_functions">
-      <foraging items="35"
+      <foraging items="FOOD_ITEMS"
                 radius="0.1"
                 energy_per_item="1000"
                 energy_per_walking_robot="1"

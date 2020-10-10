@@ -13,7 +13,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="10000"
+    <experiment length="5000"
                 ticks_per_second="10"
                 random_seed="SEED" />
   </framework>
@@ -26,7 +26,11 @@
     <khepera_mixed_controller id="kmc"
                                  library="build/controllers/khepera_mixed/libkhepera_mixed">
       <actuators>
-        <differential_steering implementation="default" noise_std_dev="NOISE_WH"/>
+        <differential_steering implementation="default"
+                               bias_avg="0"
+                               bias_stddev="0.0001"
+                               factor_avg="1"
+                               factor_stddev="0" />
         <leds implementation="default" medium="leds" />
         <range_and_bearing implementation="default" />
       </actuators>
@@ -34,7 +38,7 @@
         <kheperaiv_proximity implementation="default" show_rays="false" />
         <kheperaiv_light implementation="rot_z_only" show_rays="false" />
         <kheperaiv_ground implementation="rot_z_only" />
-        <range_and_bearing implementation="medium" medium="rab" noise_std_dev="NOISE_RAB"/>
+        <range_and_bearing implementation="medium" medium="rab" noise_std_dev="0.01"/>
         <positioning implementation="default" />
       </sensors>
       <params velocity="10">
@@ -51,9 +55,9 @@
                collision_rule_explore_to_rest_delta_prob="0.1"
                social_rule_explore_to_rest_delta_prob="0.1"
                social_rule_rest_to_explore_delta_prob="0.1"
-               minimum_resting_time="5"
-               minimum_unsuccessful_explore_time="600"
-               minimum_search_for_place_in_nest_time="5">
+               minimum_resting_time="2"
+               minimum_unsuccessful_explore_time="6000"
+               minimum_search_for_place_in_nest_time="50">
           <food_rule active="true" food_rule_explore_to_rest_delta_prob="0.1" />
         </state>
         <flocking target_distance="75"
@@ -77,7 +81,7 @@
 
     <sub_loop_functions library="build/loop_functions/mixed_loop_functions/libmixed_loop_functions.so"
                     label="mixed_loop_functions">
-      <foraging items="35"
+      <foraging items="FOOD_ITEMS"
                 radius="0.1"
                 energy_per_item="1000"
                 energy_per_walking_robot="1"
@@ -107,13 +111,6 @@
       <body position="-3,0,0" orientation="0,0,0" />
     </box>
 
-<!--     <light id="flocking"
-           position="-3,-1,0.5"
-           orientation="0,0,0"
-           color="yellow"
-           intensity="3.0"
-           medium="leds" /> -->
-
     <light id="light_1"
            position="0,-2.5,1.0"
            orientation="0,0,0"
@@ -121,7 +118,7 @@
            intensity="3.0"
            medium="leds" />
 
-<!--     <light id="light_2"
+    <light id="light_2"
            position="-0.95,-2.5,1.0"
            orientation="0,0,0"
            color="green"
@@ -132,13 +129,7 @@
            orientation="0,0,0"
            color="blue"
            intensity="3.0"
-           medium="leds" /> -->
-<!--     <light id="light_4"
-           position="3,1.5,1.0"
-           orientation="0,0,0"
-           color="yellow"
-           intensity="3.0"
-           medium="leds" /> -->
+           medium="leds" />
 
     <distribute>
       <position method="uniform" min="-3,-3,0" max="3,3,0" />
