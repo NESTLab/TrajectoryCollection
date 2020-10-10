@@ -19,7 +19,11 @@
     <khepera_flocking_controller id="ffc"
                                  library="build/controllers/khepera_flocking/libkhepera_flocking">
       <actuators>
-        <differential_steering implementation="default" />
+        <differential_steering implementation="default"
+                               bias_avg="0"
+                               bias_stddev="0.0001"
+                               factor_avg="1"
+                               factor_stddev="0" />
         <range_and_bearing implementation="default" />
       </actuators>
       <sensors>
