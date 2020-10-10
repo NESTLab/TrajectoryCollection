@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="10000"
+    <experiment length="50000"
                 ticks_per_second="10"
                 random_seed="124" />
   </framework>
@@ -27,7 +27,7 @@
         <range_and_bearing implementation="default" />
       </actuators>
       <sensors>
-        <range_and_bearing implementation="medium" rab_range="2" medium="rab" show_rays="false" />
+        <range_and_bearing implementation="medium" rab_range="2" medium="rab" show_rays="false" noise_std_dev="0.01" />
         <kheperaiv_light implementation="rot_z_only" show_rays="false" />
       </sensors>
       <params>

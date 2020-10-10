@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="10000"
+    <experiment length="50000"
                 ticks_per_second="10"
                 random_seed="SEED" />
   </framework>
@@ -19,7 +19,11 @@
     <khepera_flocking_controller id="ffc"
                                  library="build/controllers/khepera_flocking/libkhepera_flocking">
       <actuators>
-        <differential_steering implementation="default" noise_std_dev="NOISE_WH" />
+        <differential_steering implementation="default" 
+                               bias_avg="0"
+                               bias_stddev="0.0001"
+                               factor_avg="1"
+                               factor_stddev="0" />
         <range_and_bearing implementation="default" />
       </actuators>
       <sensors>
