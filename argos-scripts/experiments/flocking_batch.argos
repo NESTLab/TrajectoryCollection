@@ -52,7 +52,7 @@
   <!-- * Loop functions * -->
   <!-- ****************** -->
 
-  <loop_functions label="MasterLoopFunctions">
+  <loop_functions library="build/loop_functions/master_loop_functions/libargos3plugin_simulator_master_loop_functions.so" label="MasterLoopFunctions">
 
     <sub_loop_function library="build/loop_functions/trajectory_collection_loop_functions/libtrajectory_collection_loop_functions"
       label="trajectory_collection_loop_functions">
