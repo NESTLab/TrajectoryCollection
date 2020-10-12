@@ -44,15 +44,16 @@ QUOTA = int(sys.argv[3])
 # Neural Network parameters
 EMBEDDING_SIZE = 32
 NUM_OUTPUTS = 2
-SEQ_LENGTH = 49
+SEQ_LENGTH = 32
 DIM_INPUT = 2
+DROPOUT = 0
 sample_shape = (SEQ_LENGTH, DIM_INPUT)
 
 # Generic training parameters
 TRAIN_RATIO = 0.8
 VAL_RATIO =  1 - TRAIN_RATIO
-PAST_HISTORY = 49
-FUTURE_TARGET = 49
+PAST_HISTORY = 32
+FUTURE_TARGET = 48
 
 # Centralized training parameters
 BATCH_SIZE_C = 256
@@ -63,7 +64,7 @@ VALIDATION_STEPS_C = 50
 
 # FL training parameters
 # Generic
-EXP_DURATION = 100000
+EXP_DURATION = 50000
 LOCAL_EPOCHS = 1
 
 samples_central = {}
@@ -95,8 +96,8 @@ for filename in glob.iglob(path):
                     samples[exp_id][rid][last_key] = {'traj': [], 'end' : 0}
                 samples[exp_id][rid][last_key]['traj'].append((x1, x2))
                 samples[exp_id][rid][last_key]['end'] = t
-                if len(samples[exp_id][rid][last_key]['traj']) == 99:
-                    del samples[exp_id][rid][last_key]['traj'][98]
+                if len(samples[exp_id][rid][last_key]['traj']) == 100:
+                    # del samples[exp_id][rid][last_key]['traj'][98]
                     samples[exp_id][rid][last_key]['end'] = t
                     last_sample_keys[rid]+=1
             else:
@@ -126,39 +127,62 @@ for filename in glob.iglob(path):
                     neighbors[exp_id][t].update({i:[]})
             neighbors[exp_id][t][rid].append(nid)
 
+
+# Sort samples by time stamp
+
+for rid in samples[exp_id].keys():
+    sorted_list = sorted(samples[exp_id][rid].items(), key = lambda x: x[1]['end'])
+    count = 0
+    for i in range(len(sorted_list)):
+        samples[exp_id][rid][count] = sorted_list[count][1]
+        count+=1
+
 # # 2. Model Definition
 
 # ## 2.1 Simple LSTM 
 
 def create_model():
     return tf.keras.models.Sequential([
-    tf.keras.layers.Masking(mask_value=-10.,input_shape=sample_shape),
-    tf.keras.layers.LSTM(EMBEDDING_SIZE,
-                         return_sequences=True,
-                         input_shape=sample_shape),
-    tf.keras.layers.Dense(NUM_OUTPUTS)
-    ])
+        tf.keras.layers.Masking(mask_value=-10.,input_shape=sample_shape),
+        tf.keras.layers.LSTM(EMBEDDING_SIZE,
+                             return_sequences=False,
+                             input_shape=sample_shape),
+        tf.keras.layers.Dropout(DROPOUT),
+        tf.keras.layers.Dense(FUTURE_TARGET*NUM_OUTPUTS),
+        tf.keras.layers.Reshape([FUTURE_TARGET,NUM_OUTPUTS])
+        ])
+
+sample_model=create_model()
+
+# def create_model():
+#     return tf.keras.models.Sequential([
+#     tf.keras.layers.Masking(mask_value=-10.,input_shape=sample_shape),
+#     tf.keras.layers.LSTM(EMBEDDING_SIZE,
+#                          return_sequences=True,
+#                          input_shape=sample_shape),
+#     tf.keras.layers.Dense(NUM_OUTPUTS)
+#     ])
 
 # # 5. Distributed Federated Learning
 
 # ## 4.1 Utilities
 
-def _create_series_examples_from_batch(dataset, start_index, end_index, history_size):
+def _create_series_examples_from_batch(dataset, start_index, end_index, history_size, target_size):
    data = []
    labels = []
    list_dataset = list(dataset)
    array_dataset = np.asarray(list_dataset)
    for i in range(start_index, end_index):
        data.append(array_dataset[i][:history_size])
-       labels.append(array_dataset[i][history_size:])
+       labels.append(array_dataset[i][history_size:history_size+target_size])
        
    data = np.asarray(data).reshape(end_index-start_index, history_size, 2)
-   labels = np.asarray(labels).reshape(end_index-start_index, len(list_dataset[0]) - history_size , 2)
+   labels = np.asarray(labels).reshape(end_index-start_index, target_size , 2)
    
    return data, labels
 
 
-def create_training_and_val_batch(batch, past_history=PAST_HISTORY, future_target=PAST_HISTORY):
+def create_training_and_val_batch(batch, past_history=PAST_HISTORY, future_target=FUTURE_TARGET):
     
     x_train = np.zeros((1,PAST_HISTORY,2))
     y_train = np.zeros((1,FUTURE_TARGET,2))
@@ -167,8 +191,8 @@ def create_training_and_val_batch(batch, past_history=PAST_HISTORY, future_targe
     for v in batch:
         tot_samples = len(v)
         train_split = round(TRAIN_RATIO * tot_samples)
-        x_train_tmp, y_train_tmp = _create_series_examples_from_batch(v, 0, train_split, PAST_HISTORY)
-        x_val_tmp, y_val_tmp = _create_series_examples_from_batch(v, train_split, tot_samples, PAST_HISTORY)
+        x_train_tmp, y_train_tmp = _create_series_examples_from_batch(v, 0, train_split, past_history, future_target)
+        x_val_tmp, y_val_tmp = _create_series_examples_from_batch(v, train_split, tot_samples, past_history, future_target)
         x_train = np.concatenate([x_train, x_train_tmp], axis=0)
         y_train = np.concatenate([y_train, y_train_tmp], axis=0)
         x_val = np.concatenate([x_val, x_val_tmp], axis=0)
@@ -276,7 +300,10 @@ for exp in samples.keys():
 
     t = 0
     
-    while (t < EXP_DURATION - 1000):
+    current_weights = weighted_average_weights(trainable_weights[round_num], arr_num_samples[round_num])
+    # print(current_weights)
+
+    while (t < EXP_DURATION - 10000):
         
         num_participants = 0
 
@@ -287,6 +314,7 @@ for exp in samples.keys():
         times_at_quota = []
         for i in samples[exp].keys():
             if tmp_idx[i-1] in samples[exp][i].keys():
+                # print(i, tmp_idx[i-1], samples[exp][i][tmp_idx[i-1]]['end'])
                 times_at_quota.append(samples[exp][i][tmp_idx[i-1]]['end'])
         times_at_quota.sort()
         t = times_at_quota[min_learners - 1]
@@ -300,8 +328,9 @@ for exp in samples.keys():
             
             batch = []
             
-            current_idx =  last_idx_previous_round[i-1]
+            current_idx = last_idx_previous_round[i-1]
             while(samples[exp][i][current_idx]['end'] <= t):
+                # print(i, samples[exp][i][current_idx]['end'])
                 current_idx+=1
                 if(current_idx not in samples[exp][i].keys()):
                     current_idx -=1
@@ -309,6 +338,7 @@ for exp in samples.keys():
             
             num_samples = current_idx - last_idx_previous_round[i-1]
             
+            # print(i, num_samples)
              # Check that we have enough data collected to participate in the round
             if(num_samples >= QUOTA):
                 # Take extra data collected before end of round
@@ -316,19 +346,23 @@ for exp in samples.keys():
                 batch.append(tmp)
             else:
                 continue
+
             num_participants += 1
+            # print(num_participants)
             last_idx_previous_round[i-1] = current_idx
             
             # Get weights
             current_weights = weighted_average_weights(trainable_weights[round_num], arr_num_samples[round_num])
-            
+            # print(current_weights)
+
             # Perform local training
             # Create datasets
             x_train_FL, x_val_FL, y_train_FL, y_val_FL = create_training_and_val_batch(batch)
             train_batch, val_batch = create_datasets_FL(x_train_FL, x_val_FL, y_train_FL, y_val_FL)
             # Clone simple_lstm and initialize it with newest weights
-            local_lstm = tf.keras.models.load_model('lstm.h5', compile=False)
-            keras_model_clone = tf.keras.models.clone_model(local_lstm)
+            # local_lstm = tf.keras.models.load_model('lstm.h5', compile=False)
+            # keras_model_clone = tf.keras.models.clone_model(local_lstm)
+            keras_model_clone = tf.keras.models.clone_model(sample_model)
             keras_model_clone.compile(optimizer='SGD', loss='mean_absolute_error')
             keras_model_clone.set_weights(current_weights)
             start = datetime.datetime.now()
@@ -348,6 +382,7 @@ for exp in samples.keys():
             # Write metrics
             history_FL[exp][i].update({round_num : { 'losses': robot_history.history, 'num_samples': num_samples,
                                                      'time': duration}})
+
             # del current_weights
             del robot_history
             del train_batch
@@ -355,7 +390,7 @@ for exp in samples.keys():
             del batch
             del x_train_FL, y_train_FL, x_val_FL, y_val_FL
             del keras_model_clone
-            del local_lstm
+            # del local_lstm
             tf.keras.backend.clear_session()
         summary_FL[exp]['num_participants'].update({round_num : num_participants})
         if (num_participants == 0):
